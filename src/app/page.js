@@ -1,21 +1,134 @@
 'use client';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useSites, useTodayStats, useRecentPosts, useMonthlyRevenue, useMonthlyCosts, useAlerts, usePublishTrend } from '@/lib/hooks';
 import { supabase, isConfigured } from '@/lib/supabase';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 
-// ── 탭 목록 ──
-const TABS = [
-  { label: '개요', icon: '◎' },
-  { label: '발행 로그', icon: '⊞' },
-  { label: '수익', icon: '↗' },
-  { label: '비용', icon: '◈' },
-  { label: '알림', icon: '⚡' },
-  { label: 'AI 모델', icon: '⚙' },
-  { label: '설정', icon: '☰' },
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+
+const NICHE_CATS = [
+  { id: 'product', label: '제품 리뷰/비교', icon: '🛍️', items: [
+    { slug: 'ai-tools', ko: 'AI 도구', icon: '🤖', cpm: '$25~50' },
+    { slug: 'tech', ko: 'IT/전자기기', icon: '💻', cpm: '$20~40' },
+    { slug: 'smart-home', ko: '스마트홈', icon: '🏠', cpm: '$20~40' },
+    { slug: 'pet', ko: '반려동물', icon: '🐾', cpm: '$15~30' },
+    { slug: 'appliance', ko: '생활가전', icon: '🔌', cpm: '$15~25' },
+    { slug: 'beauty', ko: '뷰티', icon: '💄', cpm: '$15~30' },
+    { slug: 'health', ko: '건강/웰니스', icon: '💪', cpm: '$15~35' },
+    { slug: 'baby', ko: '육아/유아', icon: '👶', cpm: '$20~35' },
+    { slug: 'fitness', ko: '운동기구', icon: '🏋️', cpm: '$15~25' },
+    { slug: 'finance', ko: '재테크', icon: '💰', cpm: '$25~50' },
+    { slug: 'education', ko: '교육/생산성', icon: '📚', cpm: '$15~30' },
+  ]},
+  { id: 'news', label: '뉴스/리서치', icon: '📰', items: [
+    { slug: 'news-sbs', ko: 'SBS 뉴스', icon: '📺' },
+    { slug: 'news-kbs', ko: 'KBS 뉴스', icon: '📺' },
+    { slug: 'news-jtbc', ko: 'JTBC 뉴스', icon: '📺' },
+    { slug: 'news-mbc', ko: 'MBC 뉴스', icon: '📺' },
+    { slug: 'sns-trend', ko: 'SNS 인기 이슈', icon: '🔥' },
+    { slug: 'top10-corp', ko: '10대 대기업', icon: '🏢' },
+  ]},
+  { id: 'sector', label: '섹터 리서치', icon: '📊', items: [
+    { slug: 's-semi', ko: '반도체', icon: '🔬' },
+    { slug: 's-ai', ko: 'AI/인공지능', icon: '🤖' },
+    { slug: 's-defense', ko: '방산', icon: '🛡️' },
+    { slug: 's-pharma', ko: '제약/바이오', icon: '💊' },
+    { slug: 's-chem', ko: '화학', icon: '⚗️' },
+    { slug: 's-robot', ko: '로봇', icon: '🦾' },
+    { slug: 's-security', ko: '보안', icon: '🔒' },
+    { slug: 's-enter', ko: '엔터', icon: '🎬' },
+    { slug: 's-ev', ko: '전기차/2차전지', icon: '🔋' },
+    { slug: 's-space', ko: '우주/항공', icon: '🚀' },
+  ]},
+  { id: 'info', label: '정보 서비스', icon: '📋', items: [
+    { slug: 'gov-support', ko: '정부지원/보조금', icon: '🏛️' },
+    { slug: 'tax-guide', ko: '세무/절세', icon: '🧾' },
+    { slug: 'agency', ko: '기관 정보', icon: '🏢' },
+    { slug: 'event', ko: '행사/컨퍼런스', icon: '🎪' },
+    { slug: 'travel', ko: '여행 정보', icon: '✈️' },
+    { slug: 'keyword-collect', ko: '키워드 수집', icon: '🔍' },
+  ]},
+  { id: 'promo', label: '홍보/마케팅', icon: '📢', items: [
+    { slug: 'niche-promo', ko: '니치 홍보용', icon: '📣' },
+    { slug: 'brand', ko: '브랜드 콘텐츠', icon: '🏷️' },
+    { slug: 'compare-land', ko: '비교 랜딩', icon: '⚖️' },
+  ]},
 ];
 
-// ── AI 모델 옵션 ──
+const AFF_KR = [
+  { id: 'coupang', name: '쿠팡 파트너스', comm: '3%', signup: 'partners.coupang.com' },
+  { id: 'tenping', name: '텐핑', comm: '건당100~5000원', signup: 'tenping.kr' },
+  { id: 'linkprice', name: '링크프라이스', comm: '1~10%', signup: 'linkprice.com' },
+  { id: 'adpick', name: '애드픽', comm: '건당200~3000원', signup: 'adpick.co.kr' },
+  { id: 'revu', name: '레뷰', comm: '건당500~10000원', signup: 'revu.net' },
+  { id: 'dbdbdeep', name: '디비디비딥', comm: '건당500~5000원', signup: 'dbdbdeep.com' },
+  { id: 'leaders', name: '리더스CPA', comm: '건당500~8000원', signup: 'leaderscpa.com' },
+];
+
+const AFF_GLOBAL = [
+  { id: 'amazon', name: 'Amazon Associates', comm: '1~10%', signup: 'affiliate-program.amazon.com' },
+  { id: 'shareasale', name: 'ShareASale', comm: '다양', signup: 'shareasale.com' },
+  { id: 'cj', name: 'CJ Affiliate', comm: '다양', signup: 'cj.com' },
+  { id: 'impact', name: 'Impact', comm: '다양', signup: 'impact.com' },
+  { id: 'awin', name: 'Awin', comm: '다양', signup: 'awin.com' },
+];
+
+const INIT_SAAS = [
+  { name: 'Jasper AI', cat: '글쓰기', comm: '25% 반복 12개월', url: '' },
+  { name: 'Writesonic', cat: '글쓰기', comm: '30% 평생', url: '' },
+  { name: 'Koala AI', cat: 'SEO', comm: '30% 평생', url: '' },
+  { name: 'Synthesia', cat: 'AI영상', comm: '25% 반복', url: '' },
+  { name: 'ElevenLabs', cat: '음성', comm: '22%', url: '' },
+  { name: 'GetResponse', cat: '이메일', comm: '40~60%', url: '' },
+  { name: 'HubSpot', cat: 'CRM', comm: '30% 12개월', url: '' },
+  { name: 'Surfer SEO', cat: 'SEO', comm: '25% 반복', url: '' },
+  { name: 'Semrush', cat: 'SEO', comm: '$200/건', url: '' },
+  { name: 'Canva', cat: '디자인', comm: '$36/건', url: '' },
+];
+
+const AI_MODELS_API = [
+  { id: 'gemini', name: 'Gemini 2.0 Flash', cost: '무료', signup: 'aistudio.google.com/apikey' },
+  { id: 'grok', name: 'Grok 4.1 Fast', cost: '$0.20/MTok', signup: 'console.x.ai' },
+  { id: 'claude', name: 'Claude Haiku 4.5', cost: '$1/MTok', signup: 'console.anthropic.com' },
+  { id: 'openai', name: 'GPT-4o Mini', cost: '$0.15/MTok', signup: 'platform.openai.com' },
+  { id: 'deepseek', name: 'DeepSeek V3', cost: '$0.07/MTok', signup: 'platform.deepseek.com' },
+];
+
+const IMG_APIS = [
+  { id: 'pexels', name: 'Pexels', cost: '무료', signup: 'pexels.com/api' },
+  { id: 'pixabay', name: 'Pixabay', cost: '무료', signup: 'pixabay.com/api/docs' },
+  { id: 'unsplash', name: 'Unsplash', cost: '무료', signup: 'unsplash.com/developers' },
+];
+
+const SNS_LIST = [
+  { id: 'x', name: 'X (Twitter)' }, { id: 'threads', name: 'Threads' },
+  { id: 'naver_blog', name: '네이버 블로그' }, { id: 'naver_cafe', name: '네이버 카페' },
+  { id: 'telegram', name: 'Telegram' }, { id: 'discord', name: 'Discord' },
+];
+
+const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
+const TIMES = Array.from({ length: 48 }, (_, i) => {
+  const h = String(Math.floor(i / 2)).padStart(2, '0');
+  const m = i % 2 === 0 ? '00' : '30';
+  return `${h}:${m}`;
+});
+const TZ_LIST = [
+  { id: 'KST', label: '한국 (KST)', off: '+9' },
+  { id: 'EST', label: '미국동부 (EST)', off: '-5' },
+  { id: 'CST', label: '미국중부 (CST)', off: '-6' },
+  { id: 'PST', label: '미국서부 (PST)', off: '-8' },
+];
+const PRESETS = [
+  { id: 'd1', label: '매일 1회', days: [0, 1, 2, 3, 4, 5, 6], times: ['08:00'] },
+  { id: 'd2', label: '매일 2회', days: [0, 1, 2, 3, 4, 5, 6], times: ['08:00', '18:00'] },
+  { id: 'wd', label: '평일 1회', days: [0, 1, 2, 3, 4], times: ['08:00'] },
+  { id: 'mwf', label: '월/수/금', days: [0, 2, 4], times: ['08:00'] },
+  { id: 'we', label: '주말만', days: [5, 6], times: ['10:00'] },
+  { id: 'custom', label: '직접 설정', days: [], times: [] },
+];
+
 const DRAFT_MODELS = [
   { id: 'deepseek-chat', name: 'DeepSeek V3', costPer: 35, speed: '빠름', quality: '보통' },
   { id: 'grok-3', name: 'Grok 3', costPer: 120, speed: '보통', quality: '높음' },
@@ -24,28 +137,57 @@ const DRAFT_MODELS = [
   { id: 'gpt-5-mini', name: 'GPT-5 mini', costPer: 60, speed: '빠름', quality: '높음' },
   { id: 'gpt-4.1-mini', name: 'GPT-4.1 mini', costPer: 45, speed: '빠름', quality: '보통' },
 ];
-
 const POLISH_MODELS = [
   { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', costPer: 80 },
   { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', costPer: 30 },
   { id: 'none', name: '폴리싱 OFF', costPer: 0 },
 ];
 
-// ── 공통 컴포넌트 ──
-function Card({ children, style, hover }) {
+const TABS = [
+  { id: 'dash', label: '대시보드', icon: '◎' },
+  { id: 'niche', label: '니치 선택', icon: '◉' },
+  { id: 'schedule', label: '스케줄', icon: '◷' },
+  { id: 'money', label: '수익화', icon: '↗' },
+  { id: 'api', label: 'API/연동', icon: '⊞' },
+  { id: 'adsense', label: 'AdSense', icon: '▣' },
+  { id: 'revenue', label: '수익', icon: '★' },
+  { id: 'costs', label: '비용', icon: '◈' },
+  { id: 'alerts', label: '알림', icon: '⚡' },
+  { id: 'settings', label: '설정', icon: '⚙' },
+  { id: 'admin', label: '관리자', icon: '☰' },
+];
+
+const PIE_COLORS = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6'];
+
+const ADSENSE_ITEMS = [
+  { id: 'posts30', l: '글 30편+', d: '양질의 고유 콘텐츠', c: true },
+  { id: 'words', l: '평균 1,500자+', d: '얇은 콘텐츠 회피', c: true },
+  { id: 'images', l: '이미지 100%', d: '모든 글에 이미지 2장+', c: true },
+  { id: 'about', l: 'About 페이지', d: '사이트 소개+운영자', c: true },
+  { id: 'privacy', l: '개인정보처리방침', d: 'Privacy Policy', c: true },
+  { id: 'contact', l: '연락처 페이지', d: 'Contact Us', c: true },
+  { id: 'disclaimer', l: '면책 고지', d: 'Disclaimer', c: false },
+  { id: 'terms', l: '이용약관', d: 'Terms of Use', c: false },
+  { id: 'ssl', l: 'HTTPS 적용', d: 'Cloudways 기본 제공', c: true },
+  { id: 'speed', l: '속도 3초 이내', d: 'Breeze 캐시', c: true },
+  { id: 'mobile', l: '모바일 반응형', d: 'GeneratePress', c: true },
+  { id: 'domain', l: '도메인 3개월+', d: '일부 국가', c: false },
+  { id: 'nav', l: '메뉴 네비게이션', d: '카테고리+필수메뉴', c: true },
+  { id: 'freq', l: '주 2회+ 발행', d: '꾸준한 업데이트', c: false },
+  { id: 'unique', l: '100% 고유 콘텐츠', d: '복사 없음', c: true },
+];
+
+// ═══════════════════════════════════════════
+// SHARED COMPONENTS
+// ═══════════════════════════════════════════
+
+function Card({ children, style }) {
   return (
     <div style={{
-      background: 'var(--card)',
-      border: '1px solid var(--card-border)',
-      borderRadius: 16,
-      padding: 24,
-      boxShadow: 'var(--card-shadow)',
-      transition: 'box-shadow 0.2s ease, transform 0.2s ease',
-      animation: 'fadeIn 0.3s ease',
-      ...style
-    }}>
-      {children}
-    </div>
+      background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 16,
+      padding: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+      animation: 'fadeIn 0.3s ease', ...style
+    }}>{children}</div>
   );
 }
 
@@ -53,23 +195,23 @@ function StatCard({ label, value, sub, color, icon }) {
   return (
     <Card style={{ position: 'relative', overflow: 'hidden' }}>
       <div style={{
-        position: 'absolute', top: -8, right: -8, fontSize: 48, opacity: 0.04,
-        fontWeight: 900, color: color || 'var(--text)'
+        position: 'absolute', top: -8, right: -8, fontSize: 48, opacity: 0.06,
+        fontWeight: 900, color: color || '#1a1a2e'
       }}>{icon || '●'}</div>
-      <div style={{ fontSize: 12, color: 'var(--text-dim)', marginBottom: 6, fontWeight: 500, letterSpacing: 0.3 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 800, color: color || 'var(--text)', letterSpacing: -0.5 }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 6 }}>{sub}</div>}
+      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 6, fontWeight: 500, letterSpacing: 0.3 }}>{label}</div>
+      <div style={{ fontSize: 28, fontWeight: 800, color: color || '#1a1a2e', letterSpacing: -0.5 }}>{value}</div>
+      {sub && <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 6 }}>{sub}</div>}
     </Card>
   );
 }
 
 function Badge({ text, color }) {
   const colors = {
-    green: { bg: 'var(--green-bg)', text: 'var(--green)' },
-    red: { bg: 'var(--red-bg)', text: 'var(--red)' },
-    yellow: { bg: 'var(--yellow-bg)', text: 'var(--yellow)' },
-    blue: { bg: 'var(--blue-bg)', text: 'var(--blue)' },
-    purple: { bg: 'var(--accent-bg)', text: 'var(--accent)' },
+    green: { bg: 'rgba(16,185,129,0.08)', text: '#10b981' },
+    red: { bg: 'rgba(239,68,68,0.08)', text: '#ef4444' },
+    yellow: { bg: 'rgba(245,158,11,0.08)', text: '#f59e0b' },
+    blue: { bg: 'rgba(59,130,246,0.08)', text: '#3b82f6' },
+    purple: { bg: 'rgba(99,102,241,0.06)', text: '#6366f1' },
   };
   const c = colors[color] || colors.blue;
   return (
@@ -83,170 +225,293 @@ function Badge({ text, color }) {
 function SectionTitle({ children, action }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-      <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{children}</h3>
+      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#1a1a2e' }}>{children}</h3>
       {action}
     </div>
+  );
+}
+
+function Toggle({ on, set }) {
+  return (
+    <button onClick={() => set(!on)} style={{
+      width: 48, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer',
+      position: 'relative', background: on ? '#6366f1' : '#cbd5e1', transition: 'background 0.2s',
+      flexShrink: 0
+    }}>
+      <div style={{
+        width: 20, height: 20, borderRadius: 10, background: '#fff',
+        position: 'absolute', top: 3, left: on ? 25 : 3, transition: 'left 0.2s',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.15)'
+      }} />
+    </button>
+  );
+}
+
+function InputField({ value, onChange, placeholder, type }) {
+  return (
+    <input
+      value={value} onChange={e => onChange(e.target.value)}
+      placeholder={placeholder} type={type || 'text'}
+      style={{
+        width: '100%', padding: '9px 12px', borderRadius: 10,
+        border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1a1a2e',
+        fontSize: 12, outline: 'none', transition: 'border-color 0.2s'
+      }}
+    />
+  );
+}
+
+function EmptyState({ text, small }) {
+  return <div style={{ textAlign: 'center', padding: small ? 20 : 48, color: '#94a3b8', fontSize: 13 }}>{text}</div>;
+}
+
+function LoadingState() {
+  return <div style={{ textAlign: 'center', padding: 24, color: '#94a3b8', fontSize: 13 }}>로딩 중...</div>;
+}
+
+function PillButton({ selected, onClick, children, style }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: '8px 16px', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+      border: selected ? '2px solid #6366f1' : '1px solid #e2e8f0',
+      background: selected ? 'rgba(99,102,241,0.06)' : '#ffffff',
+      color: selected ? '#6366f1' : '#64748b', transition: 'all 0.15s', ...style
+    }}>{children}</button>
   );
 }
 
 function fmt(n) { return (n || 0).toLocaleString('ko-KR'); }
 function fmtKRW(n) { return '₩' + fmt(n); }
 
-// ── 차트 공통 스타일 ──
 const CHART_TOOLTIP = {
   contentStyle: {
-    background: '#ffffff',
-    border: '1px solid var(--border-light)',
-    borderRadius: 12,
-    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-    fontSize: 12
+    background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12,
+    boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: 12
   }
 };
 const CHART_GRID = { strokeDasharray: '3 3', stroke: 'rgba(0,0,0,0.06)' };
 const CHART_TICK = { fill: '#94a3b8', fontSize: 11 };
 
-// ── 메인 ──
+// ═══════════════════════════════════════════
+// MAIN DASHBOARD
+// ═══════════════════════════════════════════
+
 export default function Dashboard() {
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState('dash');
   const [selectedSite, setSelectedSite] = useState('site-1');
   const { sites } = useSites();
 
-  if (!isConfigured) {
-    return <SetupGuide />;
-  }
+  // Niche
+  const [selNiches, setSelNiches] = useState(['ai-tools']);
+  const toggleNiche = useCallback(slug => {
+    setSelNiches(p => p.includes(slug) ? p.filter(x => x !== slug) : [...p, slug]);
+  }, []);
+
+  // Schedule
+  const [tz, setTz] = useState('KST');
+  const [preset, setPreset] = useState('mwf');
+  const [selDays, setSelDays] = useState([0, 2, 4]);
+  const [selTimes, setSelTimes] = useState(['08:00']);
+  const [postsPerRun, setPostsPerRun] = useState(1);
+  const toggleDay = d => { setSelDays(p => p.includes(d) ? p.filter(x => x !== d) : [...p, d]); setPreset('custom'); };
+  const toggleTime = t => { setSelTimes(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t]); setPreset('custom'); };
+  const applyPreset = p => { setPreset(p.id); setSelDays(p.days); setSelTimes(p.times); };
+
+  // Monetize
+  const [affKeys, setAffKeys] = useState({});
+  const setAffKey = (id, v) => setAffKeys(p => ({ ...p, [id]: v }));
+  const [saas, setSaas] = useState(INIT_SAAS);
+  const updateSaas = (i, f, v) => { const n = [...saas]; n[i] = { ...n[i], [f]: v }; setSaas(n); };
+  const addSaas = () => setSaas([...saas, { name: '', cat: '', comm: '', url: '' }]);
+  const rmSaas = i => setSaas(saas.filter((_, j) => j !== i));
+
+  // API
+  const [apiKeys, setApiKeys] = useState({});
+  const setApi = (id, v) => setApiKeys(p => ({ ...p, [id]: v }));
+  const [snsOn, setSnsOn] = useState({});
+  const toggleSns = id => setSnsOn(p => ({ ...p, [id]: !p[id] }));
+
+  // AdSense
+  const [adChecks, setAdChecks] = useState({});
+  const toggleAd = id => setAdChecks(p => ({ ...p, [id]: !p[id] }));
+
+  // Language & Mode
+  const [lang, setLang] = useState('ko');
+  const [autoMode, setAutoMode] = useState(true);
+
+  // Computed
+  const adDone = Object.values(adChecks).filter(Boolean).length;
+  const adPct = Math.round(adDone / ADSENSE_ITEMS.length * 100);
+  const connectedAff = Object.values(affKeys).filter(Boolean).length + saas.filter(s => s.url).length;
+  const connectedApi = Object.values(apiKeys).filter(Boolean).length;
+  const snsCount = Object.values(snsOn).filter(Boolean).length;
+
+  if (!isConfigured) return <SetupGuide />;
+
+  const sharedProps = {
+    siteId: selectedSite, selNiches, toggleNiche, tz, setTz, preset, setPreset,
+    selDays, selTimes, postsPerRun, setPostsPerRun, toggleDay, toggleTime, applyPreset,
+    affKeys, setAffKey, saas, updateSaas, addSaas, rmSaas,
+    apiKeys, setApi, snsOn, toggleSns, adChecks, toggleAd,
+    lang, setLang, autoMode, setAutoMode,
+    adPct, connectedAff, connectedApi, snsCount, sites,
+  };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* 헤더 */}
+    <div style={{ minHeight: '100vh', background: '#FAFBFC' }}>
+      {/* ── Header ── */}
       <header style={{
-        background: 'var(--header-gradient)',
-        borderBottom: '1px solid var(--card-border)',
-        padding: '24px 24px 0'
+        background: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #f0f9ff 100%)',
+        borderBottom: '1px solid rgba(0,0,0,0.06)', padding: '20px 24px 0'
       }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div>
-              <h1 style={{ fontSize: 26, fontWeight: 900, letterSpacing: -0.5, color: 'var(--text)' }}>
-                <span style={{ color: 'var(--accent)' }}>AutoBlog</span>{' '}
-                <span style={{ fontWeight: 400, color: 'var(--text-secondary)' }}>Dashboard</span>
+              <h1 style={{ fontSize: 24, fontWeight: 900, letterSpacing: -0.5, color: '#1a1a2e' }}>
+                <span style={{ color: '#6366f1' }}>Clone Factory</span>{' '}
+                <span style={{ fontWeight: 400, color: '#4a5568' }}>v4.0</span>
               </h1>
-              <p style={{ fontSize: 13, color: 'var(--text-dim)', marginTop: 4 }}>
-                수익 자동화 통합 대시보드 · {sites.length}개 사이트 운영 중
+              <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
+                WP 자동 블로그 수익화 대시보드 · {sites.length}개 사이트
               </p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <Badge text={autoMode ? 'AUTO' : 'MANUAL'} color={autoMode ? 'green' : 'yellow'} />
+                <Badge text={`${selNiches.length}개 니치`} color="purple" />
+                <Badge text={`${connectedAff}개 수익화`} color="green" />
+                <Badge text={lang.toUpperCase()} color="blue" />
+              </div>
               <select
-                value={selectedSite}
-                onChange={(e) => setSelectedSite(e.target.value)}
+                value={selectedSite} onChange={e => setSelectedSite(e.target.value)}
                 style={{
-                  background: 'var(--card)', border: '1px solid var(--border-light)',
-                  borderRadius: 10, padding: '8px 14px', color: 'var(--text)',
-                  fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                  background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
+                  padding: '8px 14px', color: '#1a1a2e', fontSize: 12, fontWeight: 500,
+                  cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
                 }}
               >
                 {sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                background: 'var(--green-bg)', padding: '6px 14px', borderRadius: 20
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: 'rgba(16,185,129,0.08)', padding: '5px 12px', borderRadius: 20
               }}>
-                <div style={{
-                  width: 8, height: 8, borderRadius: '50%',
-                  background: 'var(--green)', animation: 'pulse 2s infinite'
-                }} />
-                <span style={{ fontSize: 12, color: 'var(--green)', fontWeight: 600 }}>Realtime 연결됨</span>
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', animation: 'pulse 2s infinite' }} />
+                <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600 }}>Realtime</span>
               </div>
             </div>
           </div>
 
-          {/* 탭 */}
-          <div style={{ display: 'flex', gap: 4, overflowX: 'auto' }}>
-            {TABS.map((t, i) => (
-              <button key={t.label} onClick={() => setTab(i)} style={{
-                padding: '10px 20px', border: 'none', borderRadius: '12px 12px 0 0',
-                cursor: 'pointer', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: tab === i ? 'var(--card)' : 'transparent',
-                color: tab === i ? 'var(--accent)' : 'var(--text-dim)',
-                boxShadow: tab === i ? '0 -2px 8px rgba(0,0,0,0.03)' : 'none',
-                transition: 'all 0.2s ease'
+          {/* Tabs */}
+          <div style={{ display: 'flex', gap: 2, overflowX: 'auto' }}>
+            {TABS.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{
+                padding: '9px 16px', border: 'none', borderRadius: '10px 10px 0 0',
+                cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+                display: 'flex', alignItems: 'center', gap: 5,
+                background: tab === t.id ? '#ffffff' : 'transparent',
+                color: tab === t.id ? '#6366f1' : '#94a3b8',
+                boxShadow: tab === t.id ? '0 -1px 4px rgba(0,0,0,0.03)' : 'none',
+                transition: 'all 0.15s'
               }}>
-                <span style={{ fontSize: 14 }}>{t.icon}</span>
-                {t.label}
+                <span style={{ fontSize: 13 }}>{t.icon}</span> {t.label}
               </button>
             ))}
           </div>
         </div>
       </header>
 
-      {/* 콘텐츠 */}
-      <main style={{ maxWidth: 1280, margin: '0 auto', padding: '28px 24px 48px' }}>
-        {tab === 0 && <OverviewTab siteId={selectedSite} />}
-        {tab === 1 && <PostsTab siteId={selectedSite} />}
-        {tab === 2 && <RevenueTab siteId={selectedSite} />}
-        {tab === 3 && <CostsTab siteId={selectedSite} />}
-        {tab === 4 && <AlertsTab siteId={selectedSite} />}
-        {tab === 5 && <AIModelTab siteId={selectedSite} />}
-        {tab === 6 && <SettingsTab siteId={selectedSite} sites={sites} />}
+      {/* ── Content ── */}
+      <main style={{ maxWidth: 1280, margin: '0 auto', padding: '24px 24px 60px' }}>
+        {tab === 'dash' && <DashTab {...sharedProps} />}
+        {tab === 'niche' && <NicheTab {...sharedProps} />}
+        {tab === 'schedule' && <ScheduleTab {...sharedProps} />}
+        {tab === 'money' && <MoneyTab {...sharedProps} />}
+        {tab === 'api' && <ApiTab {...sharedProps} />}
+        {tab === 'adsense' && <AdSenseTab {...sharedProps} />}
+        {tab === 'revenue' && <RevenueTab siteId={selectedSite} />}
+        {tab === 'costs' && <CostsTab siteId={selectedSite} />}
+        {tab === 'alerts' && <AlertsTab siteId={selectedSite} />}
+        {tab === 'settings' && <SettingsTab siteId={selectedSite} sites={sites} />}
+        {tab === 'admin' && <AdminTab {...sharedProps} />}
       </main>
     </div>
   );
 }
 
-// ── 개요 탭 ──
-function OverviewTab({ siteId }) {
+// ═══════════════════════════════════════════
+// TAB 1: DASHBOARD
+// ═══════════════════════════════════════════
+
+function DashTab({ siteId, selNiches, connectedAff, connectedApi, adPct, selDays, selTimes, postsPerRun, lang, setLang, autoMode, snsOn }) {
   const { stats } = useTodayStats(siteId);
   const { total: rev } = useMonthlyRevenue(siteId);
   const { costs } = useMonthlyCosts(siteId);
   const { trend } = usePublishTrend(siteId, 7);
   const { alerts } = useAlerts(siteId);
-
   const unread = alerts.filter(a => !a.is_read).length;
-  const profit = rev.krw - costs.total_krw;
+  const snsCount = Object.values(snsOn).filter(Boolean).length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* KPI 카드 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
-        <StatCard
-          label="오늘 발행" icon="✎"
-          value={`${stats.posts}편`}
-          sub={stats.failures > 0 ? `${stats.failures}건 실패` : '전체 성공'}
-          color="var(--accent)"
-        />
-        <StatCard
-          label="이번 달 수익" icon="↗"
-          value={fmtKRW(rev.krw)}
-          sub={rev.usd > 0 ? `$${rev.usd.toFixed(2)}` : ''}
-          color="var(--green)"
-        />
-        <StatCard
-          label="이번 달 비용" icon="◈"
-          value={fmtKRW(costs.total_krw)}
-          color="var(--yellow)"
-        />
-        <StatCard
-          label="순이익" icon="★"
-          value={fmtKRW(profit)}
-          sub={costs.total_krw > 0 ? `ROI ${((profit / costs.total_krw) * 100).toFixed(0)}%` : ''}
-          color={profit >= 0 ? 'var(--green)' : 'var(--red)'}
-        />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* KPI Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14 }}>
+        {[
+          { l: '니치', v: selNiches.length, u: '개', c: '#6366f1', i: '◉' },
+          { l: '수익화', v: connectedAff, u: '개', c: '#10b981', i: '↗' },
+          { l: 'API', v: connectedApi, u: '개', c: '#3b82f6', i: '⊞' },
+          { l: 'AdSense', v: `${adPct}%`, u: '', c: adPct >= 100 ? '#10b981' : '#f59e0b', i: '▣' },
+          { l: '스케줄', v: `${selDays.length}일×${selTimes.length}`, u: '회', c: '#8b5cf6', i: '◷' },
+        ].map((s, i) => (
+          <Card key={i} style={{ padding: 16 }}>
+            <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4 }}>{s.l}</div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: s.c }}>
+              {s.v}<span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>{s.u}</span>
+            </div>
+          </Card>
+        ))}
       </div>
 
-      {/* 차트 + 알림 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
+      {/* Pipeline */}
+      <Card>
+        <SectionTitle>파이프라인</SectionTitle>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+          {[
+            { l: '니치', v: `${selNiches.length}개 복합`, c: '#6366f1' },
+            { l: '키워드', v: autoMode ? '3소스 자동' : '수동', c: '#8b5cf6' },
+            { l: 'AI', v: '5-Layer 유니크', c: '#a78bfa' },
+            { l: '이미지', v: 'Pexels+Pixabay', c: '#3b82f6' },
+            { l: '품질', v: '70점+', c: '#10b981' },
+            { l: '수익화', v: connectedAff > 0 ? `${connectedAff}개 연결` : '미설정', c: connectedAff > 0 ? '#f59e0b' : '#ef4444' },
+            { l: 'WP발행', v: 'AdSense최적화', c: '#10b981' },
+            { l: 'SNS', v: snsCount > 0 ? '자동공유' : '미설정', c: '#3b82f6' },
+          ].map((s, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {i > 0 && <span style={{ color: '#d1d5db', fontWeight: 700, fontSize: 12 }}>→</span>}
+              <div style={{
+                background: `${s.c}0a`, border: `1px solid ${s.c}1a`, borderRadius: 10, padding: '6px 12px'
+              }}>
+                <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 600 }}>{s.l}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: s.c }}>{s.v}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* Chart + Alerts */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
         <Card>
           <SectionTitle>7일 발행 추이</SectionTitle>
           {trend.length > 0 ? (
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={220}>
               <BarChart data={trend} barCategoryGap="20%">
                 <CartesianGrid {...CHART_GRID} />
                 <XAxis dataKey="date" tick={CHART_TICK} tickFormatter={d => d.slice(5)} />
                 <YAxis tick={CHART_TICK} />
                 <Tooltip {...CHART_TOOLTIP} />
-                <Bar dataKey="published" fill="var(--accent)" radius={[6, 6, 0, 0]} name="발행" />
-                <Bar dataKey="failed" fill="var(--red)" radius={[6, 6, 0, 0]} name="실패" opacity={0.7} />
+                <Bar dataKey="published" fill="#6366f1" radius={[6, 6, 0, 0]} name="발행" />
+                <Bar dataKey="failed" fill="#ef4444" radius={[6, 6, 0, 0]} name="실패" opacity={0.7} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -255,21 +520,16 @@ function OverviewTab({ siteId }) {
         </Card>
 
         <Card>
-          <SectionTitle action={unread > 0 ? <Badge text={`${unread}건 새 알림`} color="red" /> : null}>
-            알림
-          </SectionTitle>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 220, overflowY: 'auto' }}>
+          <SectionTitle action={unread > 0 ? <Badge text={`${unread}건 새 알림`} color="red" /> : null}>알림</SectionTitle>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 200, overflowY: 'auto' }}>
             {alerts.slice(0, 5).map(a => (
               <div key={a.id} style={{
                 padding: '10px 12px', borderRadius: 10,
-                background: a.is_read ? 'var(--bg)' : 'var(--accent-bg)',
-                border: '1px solid var(--card-border)', fontSize: 12,
-                transition: 'background 0.2s'
+                background: a.is_read ? '#f8fafc' : 'rgba(99,102,241,0.06)',
+                border: '1px solid rgba(0,0,0,0.06)', fontSize: 12
               }}>
-                <div style={{ fontWeight: 600, color: a.severity === 'critical' ? 'var(--red)' : 'var(--text)' }}>
-                  {a.title}
-                </div>
-                <div style={{ color: 'var(--text-dim)', marginTop: 3 }}>{a.message?.slice(0, 60)}</div>
+                <div style={{ fontWeight: 600, color: a.severity === 'critical' ? '#ef4444' : '#1a1a2e' }}>{a.title}</div>
+                <div style={{ color: '#94a3b8', marginTop: 3 }}>{a.message?.slice(0, 60)}</div>
               </div>
             ))}
             {alerts.length === 0 && <EmptyState text="알림 없음" small />}
@@ -277,104 +537,406 @@ function OverviewTab({ siteId }) {
         </Card>
       </div>
 
-      {/* 모델별 비용 파이 */}
-      {Object.keys(costs.by_model).length > 0 && (
+      {/* Supabase KPI */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+        <StatCard label="오늘 발행" icon="✎" value={`${stats.posts}편`} sub={stats.failures > 0 ? `${stats.failures}건 실패` : '전체 성공'} color="#6366f1" />
+        <StatCard label="이번 달 수익" icon="↗" value={fmtKRW(rev.krw)} sub={rev.usd > 0 ? `$${rev.usd.toFixed(2)}` : ''} color="#10b981" />
+        <StatCard label="이번 달 비용" icon="◈" value={fmtKRW(costs.total_krw)} color="#f59e0b" />
+        <StatCard label="순이익" icon="★" value={fmtKRW(rev.krw - costs.total_krw)} sub={costs.total_krw > 0 ? `ROI ${(((rev.krw - costs.total_krw) / costs.total_krw) * 100).toFixed(0)}%` : ''} color={rev.krw - costs.total_krw >= 0 ? '#10b981' : '#ef4444'} />
+      </div>
+
+      {/* Selected Niches + Lang */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
         <Card>
-          <SectionTitle>모델별 비용 분포</SectionTitle>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-            <ResponsiveContainer width={200} height={200}>
-              <PieChart>
-                <Pie
-                  data={Object.entries(costs.by_model).map(([name, value]) => ({ name, value }))}
-                  cx="50%" cy="50%" innerRadius={55} outerRadius={80}
-                  dataKey="value" paddingAngle={3} strokeWidth={0}
-                >
-                  {Object.keys(costs.by_model).map((_, i) => (
-                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(v) => fmtKRW(v)} {...CHART_TOOLTIP} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {Object.entries(costs.by_model).sort((a, b) => b[1] - a[1]).map(([model, cost], i) => (
-                <div key={model} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 12, height: 12, borderRadius: 4, background: PIE_COLORS[i % PIE_COLORS.length] }} />
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)', minWidth: 140 }}>{model}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700 }}>{fmtKRW(cost)}</span>
-                </div>
-              ))}
-            </div>
+          <SectionTitle>선택된 니치</SectionTitle>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {selNiches.map(slug => {
+              const n = NICHE_CATS.flatMap(c => c.items).find(x => x.slug === slug);
+              return n ? <Badge key={slug} text={`${n.icon} ${n.ko}`} color="purple" /> : null;
+            })}
+            {selNiches.length === 0 && <span style={{ fontSize: 12, color: '#94a3b8' }}>니치를 선택하세요</span>}
           </div>
         </Card>
-      )}
+        <Card>
+          <SectionTitle>언어</SectionTitle>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {[
+              { id: 'ko', label: '🇰🇷 한국어' },
+              { id: 'en', label: '🇺🇸 English' },
+              { id: 'both', label: '🌐 둘 다' },
+            ].map(l => (
+              <PillButton key={l.id} selected={lang === l.id} onClick={() => setLang(l.id)} style={{ flex: 1 }}>
+                {l.label}
+              </PillButton>
+            ))}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
 
-const PIE_COLORS = ['#7c3aed', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+// ═══════════════════════════════════════════
+// TAB 2: NICHE
+// ═══════════════════════════════════════════
 
-// ── 발행 로그 탭 ──
-function PostsTab({ siteId }) {
-  const { posts, loading } = useRecentPosts(siteId, 50);
-
+function NicheTab({ selNiches, toggleNiche }) {
   return (
-    <Card>
-      <SectionTitle>최근 발행 ({posts.length}건)</SectionTitle>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid var(--border-light)' }}>
-              {['시간', '제목', '파이프라인', '키워드', '길이', '이미지', '쿠팡', 'SNS', '상태'].map(h => (
-                <th key={h} style={{
-                  textAlign: 'left', padding: '12px 8px',
-                  color: 'var(--text-dim)', fontWeight: 600, fontSize: 12,
-                  textTransform: 'uppercase', letterSpacing: 0.5
-                }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {posts.map(p => (
-              <tr key={p.id} style={{
-                borderBottom: '1px solid var(--card-border)',
-                transition: 'background 0.15s'
-              }}>
-                <td style={{ padding: '12px 8px', whiteSpace: 'nowrap', color: 'var(--text-dim)' }}>
-                  {new Date(p.published_at).toLocaleString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
-                </td>
-                <td style={{ padding: '12px 8px', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {p.url ? (
-                    <a href={p.url} target="_blank" rel="noopener" style={{
-                      color: 'var(--accent)', textDecoration: 'none', fontWeight: 500
-                    }}>{p.title}</a>
-                  ) : p.title}
-                </td>
-                <td style={{ padding: '12px 8px' }}><Badge text={p.pipeline} color="purple" /></td>
-                <td style={{ padding: '12px 8px', color: 'var(--text-secondary)' }}>{p.keyword?.slice(0, 20)}</td>
-                <td style={{ padding: '12px 8px', fontVariantNumeric: 'tabular-nums' }}>{fmt(p.content_length)}</td>
-                <td style={{ padding: '12px 8px', textAlign: 'center' }}>{p.has_image ? '●' : '—'}</td>
-                <td style={{ padding: '12px 8px', textAlign: 'center' }}>{p.has_coupang ? '●' : '—'}</td>
-                <td style={{ padding: '12px 8px' }}>
-                  {(p.sns_shared || []).map(s => <Badge key={s} text={s} color="blue" />)}
-                </td>
-                <td style={{ padding: '12px 8px' }}>
-                  <Badge text={p.status} color={p.status === 'published' ? 'green' : p.status === 'failed' ? 'red' : 'yellow'} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {loading && <LoadingState />}
-        {!loading && posts.length === 0 && (
-          <EmptyState text="발행 로그가 없습니다. GitHub Actions 발행 후 자동 기록됩니다." />
-        )}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div>
+        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1a1a2e', marginBottom: 4 }}>니치 선택 (복합 가능)</h2>
+        <p style={{ fontSize: 13, color: '#94a3b8' }}>여러 니치를 동시에 선택할 수 있습니다. 선택한 모든 니치에서 키워드가 자동 생성됩니다.</p>
       </div>
-    </Card>
+
+      {NICHE_CATS.map(cat => (
+        <Card key={cat.id}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a2e', marginBottom: 12 }}>{cat.icon} {cat.label}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+            {cat.items.map(n => {
+              const sel = selNiches.includes(n.slug);
+              return (
+                <button key={n.slug} onClick={() => toggleNiche(n.slug)} style={{
+                  padding: '12px 10px', borderRadius: 12, cursor: 'pointer', textAlign: 'left',
+                  border: sel ? '2px solid #6366f1' : '1px solid #e2e8f0',
+                  background: sel ? 'rgba(99,102,241,0.06)' : '#ffffff',
+                  transition: 'all 0.15s'
+                }}>
+                  <div style={{ fontSize: 22 }}>{n.icon}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: sel ? '#6366f1' : '#1a1a2e', marginTop: 6 }}>{n.ko}</div>
+                  {n.cpm && <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>CPM {n.cpm}</div>}
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+      ))}
+
+      <Card style={{ background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.12)' }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: '#6366f1' }}>선택됨: {selNiches.length}개</span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+          {selNiches.map(slug => {
+            const n = NICHE_CATS.flatMap(c => c.items).find(x => x.slug === slug);
+            return n ? <Badge key={slug} text={`${n.icon} ${n.ko}`} color="purple" /> : null;
+          })}
+        </div>
+      </Card>
+    </div>
   );
 }
 
-// ── 수익 탭 ──
+// ═══════════════════════════════════════════
+// TAB 3: SCHEDULE
+// ═══════════════════════════════════════════
+
+function ScheduleTab({ tz, setTz, preset, applyPreset, selDays, selTimes, postsPerRun, setPostsPerRun, toggleDay, toggleTime }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div>
+        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1a1a2e', marginBottom: 4 }}>발행 스케줄</h2>
+        <p style={{ fontSize: 13, color: '#94a3b8' }}>30분 단위, 한국/미국 시간대, 요일+시간+횟수 조합으로 설정합니다.</p>
+      </div>
+
+      {/* Timezone */}
+      <Card>
+        <div style={{ fontWeight: 600, fontSize: 13, color: '#1a1a2e', marginBottom: 10 }}>타임존</div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {TZ_LIST.map(t => (
+            <PillButton key={t.id} selected={tz === t.id} onClick={() => setTz(t.id)}>
+              {t.label} ({t.off})
+            </PillButton>
+          ))}
+        </div>
+      </Card>
+
+      {/* Presets */}
+      <Card>
+        <div style={{ fontWeight: 600, fontSize: 13, color: '#1a1a2e', marginBottom: 10 }}>빠른 설정</div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {PRESETS.map(p => (
+            <PillButton key={p.id} selected={preset === p.id} onClick={() => applyPreset(p)}>
+              {p.label}
+            </PillButton>
+          ))}
+        </div>
+      </Card>
+
+      {/* Days */}
+      <Card>
+        <div style={{ fontWeight: 600, fontSize: 13, color: '#1a1a2e', marginBottom: 10 }}>요일 선택</div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {DAYS.map((d, i) => (
+            <button key={i} onClick={() => toggleDay(i)} style={{
+              width: 44, height: 44, borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              border: selDays.includes(i) ? '2px solid #6366f1' : '1px solid #e2e8f0',
+              background: selDays.includes(i) ? 'rgba(99,102,241,0.08)' : '#ffffff',
+              color: selDays.includes(i) ? '#6366f1' : '#94a3b8',
+              transition: 'all 0.15s'
+            }}>{d}</button>
+          ))}
+        </div>
+      </Card>
+
+      {/* Times */}
+      <Card>
+        <div style={{ fontWeight: 600, fontSize: 13, color: '#1a1a2e', marginBottom: 10 }}>시간 선택 (30분 단위, 복수 선택)</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 4, maxHeight: 220, overflowY: 'auto' }}>
+          {TIMES.map(t => (
+            <button key={t} onClick={() => toggleTime(t)} style={{
+              padding: '6px 2px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+              border: selTimes.includes(t) ? '2px solid #6366f1' : '1px solid #f1f5f9',
+              background: selTimes.includes(t) ? 'rgba(99,102,241,0.08)' : '#ffffff',
+              color: selTimes.includes(t) ? '#6366f1' : '#94a3b8',
+              transition: 'all 0.15s'
+            }}>{t}</button>
+          ))}
+        </div>
+      </Card>
+
+      {/* Posts per run */}
+      <Card>
+        <div style={{ fontWeight: 600, fontSize: 13, color: '#1a1a2e', marginBottom: 10 }}>1회 실행당 발행 수</div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {[1, 2, 3, 5, 10].map(n => (
+            <PillButton key={n} selected={postsPerRun === n} onClick={() => setPostsPerRun(n)}>
+              {n}편
+            </PillButton>
+          ))}
+        </div>
+        <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 10 }}>
+          주간 예상: {selDays.length}일 × {selTimes.length}회 × {postsPerRun}편 ={' '}
+          <strong style={{ color: '#6366f1' }}>{selDays.length * selTimes.length * postsPerRun}편/주</strong>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// TAB 4: MONETIZE
+// ═══════════════════════════════════════════
+
+function MoneyTab({ affKeys, setAffKey, saas, updateSaas, addSaas, rmSaas }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div>
+        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1a1a2e', marginBottom: 4 }}>수익화 설정</h2>
+        <p style={{ fontSize: 13, color: '#94a3b8' }}>API키나 레퍼럴 URL을 입력하면 글에 자동 삽입됩니다.</p>
+      </div>
+
+      {/* KR Affiliates */}
+      <Card>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a2e', marginBottom: 12 }}>🇰🇷 한국 어필리에이트</div>
+        {AFF_KR.map(a => (
+          <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+            <div style={{ width: 120, fontSize: 12, fontWeight: 600, color: '#1a1a2e', flexShrink: 0 }}>{a.name}</div>
+            <div style={{ width: 100, fontSize: 10, color: '#10b981', flexShrink: 0 }}>{a.comm}</div>
+            <div style={{ flex: 1 }}>
+              <InputField value={affKeys[a.id] || ''} onChange={v => setAffKey(a.id, v)} placeholder={a.id === 'coupang' ? 'Access Key' : '레퍼럴 URL 또는 ID'} />
+            </div>
+            <Badge text={affKeys[a.id] ? 'ON' : 'OFF'} color={affKeys[a.id] ? 'green' : 'yellow'} />
+          </div>
+        ))}
+      </Card>
+
+      {/* Global */}
+      <Card>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a2e', marginBottom: 12 }}>🌐 글로벌 어필리에이트</div>
+        {AFF_GLOBAL.map(a => (
+          <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+            <div style={{ width: 120, fontSize: 12, fontWeight: 600, color: '#1a1a2e', flexShrink: 0 }}>{a.name}</div>
+            <div style={{ width: 100, fontSize: 10, color: '#10b981', flexShrink: 0 }}>{a.comm}</div>
+            <div style={{ flex: 1 }}>
+              <InputField value={affKeys[a.id] || ''} onChange={v => setAffKey(a.id, v)} placeholder="트래킹 ID 또는 레퍼럴 URL" />
+            </div>
+            <Badge text={affKeys[a.id] ? 'ON' : 'OFF'} color={affKeys[a.id] ? 'green' : 'yellow'} />
+          </div>
+        ))}
+      </Card>
+
+      {/* SaaS Referrals */}
+      <Card>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a2e' }}>🤖 AI SaaS 레퍼럴</div>
+          <button onClick={addSaas} style={{
+            padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.3)',
+            background: 'rgba(99,102,241,0.04)', color: '#6366f1', fontSize: 11, fontWeight: 700, cursor: 'pointer'
+          }}>+ 추가</button>
+        </div>
+        {saas.map((s, i) => (
+          <div key={i} style={{
+            display: 'grid', gridTemplateColumns: '130px 70px 90px 1fr 32px',
+            gap: 8, alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9'
+          }}>
+            <input value={s.name} onChange={e => updateSaas(i, 'name', e.target.value)} placeholder="서비스명"
+              style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1a1a2e', fontSize: 11, outline: 'none' }} />
+            <input value={s.cat} onChange={e => updateSaas(i, 'cat', e.target.value)} placeholder="카테고리"
+              style={{ padding: '7px 8px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#64748b', fontSize: 10, outline: 'none' }} />
+            <span style={{ fontSize: 10, color: '#10b981' }}>{s.comm}</span>
+            <input value={s.url} onChange={e => updateSaas(i, 'url', e.target.value)} placeholder="레퍼럴 URL"
+              style={{ padding: '7px 10px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1a1a2e', fontSize: 11, outline: 'none' }} />
+            <button onClick={() => rmSaas(i)} style={{
+              width: 28, height: 28, borderRadius: 8, border: 'none',
+              background: 'rgba(239,68,68,0.06)', color: '#ef4444', fontSize: 14, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>×</button>
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// TAB 5: API / INTEGRATION
+// ═══════════════════════════════════════════
+
+function ApiTab({ apiKeys, setApi, snsOn, toggleSns }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div>
+        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1a1a2e', marginBottom: 4 }}>API 키 / 연동 설정</h2>
+        <p style={{ fontSize: 13, color: '#94a3b8' }}>AI 모델, 이미지 API, SNS 자동 공유를 설정합니다.</p>
+      </div>
+
+      {/* AI Models */}
+      <Card>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a2e', marginBottom: 12 }}>AI 모델 (글쓰기)</div>
+        {AI_MODELS_API.map(m => (
+          <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+            <div style={{ width: 140, fontSize: 12, fontWeight: 600, color: '#1a1a2e', flexShrink: 0 }}>{m.name}</div>
+            <div style={{ width: 90, fontSize: 10, color: '#94a3b8', flexShrink: 0 }}>{m.cost}</div>
+            <div style={{ flex: 1 }}>
+              <InputField value={apiKeys[m.id] || ''} onChange={v => setApi(m.id, v)} placeholder="API Key" type="password" />
+            </div>
+            <Badge text={apiKeys[m.id] ? '연결' : '미등록'} color={apiKeys[m.id] ? 'green' : 'yellow'} />
+            <a href={`https://${m.signup}`} target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: 10, color: '#6366f1', textDecoration: 'none', fontWeight: 600, flexShrink: 0 }}>발급</a>
+          </div>
+        ))}
+      </Card>
+
+      {/* Image APIs */}
+      <Card>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a2e', marginBottom: 12 }}>이미지 API</div>
+        {IMG_APIS.map(m => (
+          <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #f1f5f9' }}>
+            <div style={{ width: 110, fontSize: 12, fontWeight: 600, color: '#1a1a2e' }}>{m.name}</div>
+            <div style={{ width: 90, fontSize: 10, color: '#94a3b8' }}>{m.cost}</div>
+            <div style={{ flex: 1 }}>
+              <InputField value={apiKeys[m.id] || ''} onChange={v => setApi(m.id, v)} placeholder="API Key" type="password" />
+            </div>
+            <Badge text={apiKeys[m.id] ? '연결' : '미등록'} color={apiKeys[m.id] ? 'green' : 'yellow'} />
+            <a href={`https://${m.signup}`} target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: 10, color: '#6366f1', textDecoration: 'none', fontWeight: 600 }}>발급</a>
+          </div>
+        ))}
+      </Card>
+
+      {/* SNS */}
+      <Card>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a2e', marginBottom: 6 }}>SNS 자동 공유</div>
+        <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>글 발행 후 자동으로 SNS에 공유합니다.</p>
+        {SNS_LIST.map(s => (
+          <div key={s.id} style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '10px 0', borderBottom: '1px solid #f1f5f9'
+          }}>
+            <span style={{ fontSize: 13, color: '#1a1a2e', fontWeight: 500 }}>{s.name}</span>
+            <Toggle on={!!snsOn[s.id]} set={() => toggleSns(s.id)} />
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// TAB 6: ADSENSE
+// ═══════════════════════════════════════════
+
+function AdSenseTab({ adChecks, toggleAd, adPct }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div>
+        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1a1a2e', marginBottom: 4 }}>AdSense 승인 준비</h2>
+        <p style={{ fontSize: 13, color: '#94a3b8' }}>모든 필수 항목 충족 시 Google AdSense에 신청할 수 있습니다.</p>
+      </div>
+
+      {/* Progress */}
+      <Card>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <span style={{ fontWeight: 700, fontSize: 14, color: '#1a1a2e' }}>승인 준비율</span>
+          <span style={{ fontSize: 32, fontWeight: 900, color: adPct >= 100 ? '#10b981' : adPct >= 70 ? '#f59e0b' : '#ef4444' }}>{adPct}%</span>
+        </div>
+        <div style={{ width: '100%', height: 10, background: '#f1f5f9', borderRadius: 5, overflow: 'hidden' }}>
+          <div style={{
+            width: `${adPct}%`, height: '100%', borderRadius: 5,
+            background: adPct >= 100 ? '#10b981' : adPct >= 70 ? '#f59e0b' : '#ef4444',
+            transition: 'width 0.5s'
+          }} />
+        </div>
+        {adPct >= 100 && (
+          <div style={{ marginTop: 14, textAlign: 'center' }}>
+            <a href="https://www.google.com/adsense/start/" target="_blank" rel="noopener noreferrer" style={{
+              display: 'inline-block', padding: '12px 32px', borderRadius: 12,
+              background: '#10b981', color: '#fff', fontWeight: 700, fontSize: 14, textDecoration: 'none',
+              boxShadow: '0 2px 8px rgba(16,185,129,0.3)'
+            }}>AdSense 신청하기</a>
+          </div>
+        )}
+      </Card>
+
+      {/* Checklist */}
+      <Card>
+        {ADSENSE_ITEMS.map(item => (
+          <div key={item.id} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '10px 0', borderBottom: '1px solid #f1f5f9'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button onClick={() => toggleAd(item.id)} style={{
+                width: 22, height: 22, borderRadius: 6, border: 'none', cursor: 'pointer',
+                background: adChecks[item.id] ? '#10b981' : '#e2e8f0',
+                color: '#fff', fontSize: 12, fontWeight: 700,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'background 0.15s'
+              }}>{adChecks[item.id] ? '✓' : ''}</button>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#1a1a2e' }}>
+                  {item.l} {item.c && <span style={{ fontSize: 9, color: '#ef4444', fontWeight: 700 }}>필수</span>}
+                </div>
+                <div style={{ fontSize: 10, color: '#94a3b8' }}>{item.d}</div>
+              </div>
+            </div>
+            <Badge text={adChecks[item.id] ? '완료' : '미완료'} color={adChecks[item.id] ? 'green' : 'yellow'} />
+          </div>
+        ))}
+      </Card>
+
+      {/* Manual */}
+      <Card>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a2e', marginBottom: 12 }}>신청 매뉴얼</div>
+        {['adsense.google.com 접속 + Google 로그인', '사이트 URL 입력', '계정 유형: 개인, 국가: 대한민국',
+          '전화번호 인증 (SMS)', 'AdSense 코드를 WP head에 삽입 (Ad Inserter)', '심사 대기 (2~14일)', '승인 후 자동 광고 ON'
+        ].map((s, i) => (
+          <div key={i} style={{ display: 'flex', gap: 10, padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+            <div style={{
+              width: 24, height: 24, borderRadius: 12, background: '#6366f1', color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 11, fontWeight: 700, flexShrink: 0
+            }}>{i + 1}</div>
+            <span style={{ fontSize: 12, color: '#1a1a2e', lineHeight: '24px' }}>{s}</span>
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════
+// TAB 7: REVENUE (Supabase)
+// ═══════════════════════════════════════════
+
 function RevenueTab({ siteId }) {
   const { revenue, total } = useMonthlyRevenue(siteId);
 
@@ -392,21 +954,16 @@ function RevenueTab({ siteId }) {
   const dailyTrend = Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date));
 
   const CHANNEL_COLORS = {
-    adsense: 'var(--green)', coupang_cps: 'var(--blue)',
-    tenping_cpa: 'var(--yellow)', stibee: 'var(--red)', kmong: 'var(--accent)'
+    adsense: '#10b981', coupang_cps: '#3b82f6', tenping_cpa: '#f59e0b',
+    stibee: '#ef4444', kmong: '#6366f1'
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-        <StatCard label="이번 달 총 수익" value={fmtKRW(total.krw)} color="var(--green)" icon="↗" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+        <StatCard label="이번 달 총 수익" value={fmtKRW(total.krw)} color="#10b981" icon="↗" />
         {Object.entries(byChannel).map(([ch, v]) => (
-          <StatCard
-            key={ch}
-            label={ch.replace('_', ' ').toUpperCase()}
-            value={fmtKRW(v)}
-            color={CHANNEL_COLORS[ch] || 'var(--blue)'}
-          />
+          <StatCard key={ch} label={ch.replace('_', ' ').toUpperCase()} value={fmtKRW(v)} color={CHANNEL_COLORS[ch] || '#3b82f6'} />
         ))}
       </div>
 
@@ -417,64 +974,87 @@ function RevenueTab({ siteId }) {
             <AreaChart data={dailyTrend}>
               <defs>
                 <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--green)" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="var(--green)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid {...CHART_GRID} />
               <XAxis dataKey="date" tick={CHART_TICK} tickFormatter={d => d.slice(5)} />
               <YAxis tick={CHART_TICK} tickFormatter={v => `₩${(v / 1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v) => fmtKRW(v)} {...CHART_TOOLTIP} />
-              <Area type="monotone" dataKey="total" stroke="var(--green)" strokeWidth={2.5} fill="url(#revenueGrad)" dot={{ r: 3, fill: 'var(--green)' }} />
+              <Tooltip formatter={v => fmtKRW(v)} {...CHART_TOOLTIP} />
+              <Area type="monotone" dataKey="total" stroke="#10b981" strokeWidth={2.5} fill="url(#revenueGrad)" dot={{ r: 3, fill: '#10b981' }} />
             </AreaChart>
           </ResponsiveContainer>
         </Card>
       )}
 
       {revenue.length === 0 && (
-        <Card>
-          <EmptyState text="수익 데이터가 없습니다. report_agent.py가 수익을 수집하면 자동 반영됩니다." />
-        </Card>
+        <Card><EmptyState text="수익 데이터가 없습니다. report_agent.py가 수익을 수집하면 자동 반영됩니다." /></Card>
       )}
     </div>
   );
 }
 
-// ── 비용 탭 ──
+// ═══════════════════════════════════════════
+// TAB 8: COSTS (Supabase)
+// ═══════════════════════════════════════════
+
 function CostsTab({ siteId }) {
   const { costs } = useMonthlyCosts(siteId);
+  const { total: rev } = useMonthlyRevenue(siteId);
+  const profit = rev.krw - costs.total_krw;
+  const roi = costs.total_krw > 0 ? ((profit / costs.total_krw) * 100).toFixed(0) : '-';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <StatCard label="이번 달 API 비용" value={fmtKRW(costs.total_krw)} color="var(--yellow)" icon="◈" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+        <StatCard label="이번 달 API 비용" value={fmtKRW(costs.total_krw)} color="#f59e0b" icon="◈" />
+        <StatCard label="순이익" value={fmtKRW(profit)} color={profit >= 0 ? '#10b981' : '#ef4444'} icon="★" />
+        <StatCard label="ROI" value={roi !== '-' ? `${roi}%` : '-'} color="#6366f1" icon="↗" />
+      </div>
 
       <Card>
         <SectionTitle>모델별 비용</SectionTitle>
         {Object.entries(costs.by_model).length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {Object.entries(costs.by_model).sort((a, b) => b[1] - a[1]).map(([model, cost], i) => {
-              const pct = costs.total_krw > 0 ? (cost / costs.total_krw * 100) : 0;
-              return (
-                <div key={model}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 10, height: 10, borderRadius: 3, background: PIE_COLORS[i % PIE_COLORS.length] }} />
-                      <span style={{ fontSize: 13, fontWeight: 500 }}>{model}</span>
+          <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
+            <ResponsiveContainer width={200} height={200}>
+              <PieChart>
+                <Pie
+                  data={Object.entries(costs.by_model).map(([name, value]) => ({ name, value }))}
+                  cx="50%" cy="50%" innerRadius={55} outerRadius={80}
+                  dataKey="value" paddingAngle={3} strokeWidth={0}
+                >
+                  {Object.keys(costs.by_model).map((_, i) => (
+                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={v => fmtKRW(v)} {...CHART_TOOLTIP} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
+              {Object.entries(costs.by_model).sort((a, b) => b[1] - a[1]).map(([model, cost], i) => {
+                const pct = costs.total_krw > 0 ? (cost / costs.total_krw * 100) : 0;
+                return (
+                  <div key={model}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 10, height: 10, borderRadius: 3, background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                        <span style={{ fontSize: 13, fontWeight: 500, color: '#4a5568' }}>{model}</span>
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 700 }}>
+                        {fmtKRW(cost)} <span style={{ color: '#94a3b8', fontWeight: 400 }}>({pct.toFixed(1)}%)</span>
+                      </span>
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
-                      {fmtKRW(cost)} <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>({pct.toFixed(1)}%)</span>
-                    </span>
+                    <div style={{ height: 6, background: '#f1f5f9', borderRadius: 3 }}>
+                      <div style={{
+                        height: '100%', width: `${pct}%`, borderRadius: 3,
+                        background: PIE_COLORS[i % PIE_COLORS.length], transition: 'width 0.5s'
+                      }} />
+                    </div>
                   </div>
-                  <div style={{ height: 8, background: 'var(--input-bg)', borderRadius: 4 }}>
-                    <div style={{
-                      height: '100%', width: `${pct}%`, borderRadius: 4,
-                      background: PIE_COLORS[i % PIE_COLORS.length],
-                      transition: 'width 0.5s ease'
-                    }} />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         ) : (
           <EmptyState text="비용 데이터 없음" />
@@ -484,63 +1064,72 @@ function CostsTab({ siteId }) {
   );
 }
 
-// ── 알림 탭 ──
+// ═══════════════════════════════════════════
+// TAB 9: ALERTS (Supabase)
+// ═══════════════════════════════════════════
+
 function AlertsTab({ siteId }) {
   const { alerts, markRead } = useAlerts(siteId);
 
-  const severityStyle = {
-    critical: { color: 'var(--red)', bg: 'var(--red-bg)', dot: '●' },
-    warning: { color: 'var(--yellow)', bg: 'var(--yellow-bg)', dot: '●' },
-    info: { color: 'var(--green)', bg: 'var(--green-bg)', dot: '●' },
+  const sevStyle = {
+    critical: { color: '#ef4444', bg: 'rgba(239,68,68,0.06)' },
+    warning: { color: '#f59e0b', bg: 'rgba(245,158,11,0.06)' },
+    info: { color: '#10b981', bg: 'rgba(16,185,129,0.06)' },
   };
 
   return (
-    <Card>
-      <SectionTitle>알림 ({alerts.length}건)</SectionTitle>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {alerts.map(a => {
-          const sev = severityStyle[a.severity] || severityStyle.info;
-          return (
-            <div key={a.id} style={{
-              padding: '14px 16px', borderRadius: 12,
-              background: a.is_read ? 'var(--bg)' : sev.bg,
-              border: '1px solid var(--card-border)',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-              transition: 'background 0.2s'
-            }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ color: sev.color, fontSize: 10 }}>{sev.dot}</span>
-                  {a.title}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1a1a2e' }}>알림 ({alerts.length}건)</h2>
+      <Card>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {alerts.map(a => {
+            const sev = sevStyle[a.severity] || sevStyle.info;
+            return (
+              <div key={a.id} style={{
+                padding: '14px 16px', borderRadius: 12,
+                background: a.is_read ? '#f8fafc' : sev.bg,
+                border: '1px solid rgba(0,0,0,0.06)',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ color: sev.color, fontSize: 10 }}>●</span>
+                    {a.title}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#4a5568', marginTop: 4 }}>{a.message}</div>
+                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>
+                    {new Date(a.created_at).toLocaleString('ko-KR')}
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{a.message}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 6 }}>
-                  {new Date(a.created_at).toLocaleString('ko-KR')}
-                </div>
+                {!a.is_read && (
+                  <button onClick={() => markRead(a.id)} style={{
+                    background: 'rgba(99,102,241,0.06)', border: 'none', borderRadius: 8,
+                    padding: '6px 14px', color: '#6366f1', fontSize: 12,
+                    fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap'
+                  }}>읽음</button>
+                )}
               </div>
-              {!a.is_read && (
-                <button onClick={() => markRead(a.id)} style={{
-                  background: 'var(--accent-bg)', border: 'none', borderRadius: 8,
-                  padding: '6px 14px', color: 'var(--accent)', fontSize: 12,
-                  fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
-                  transition: 'background 0.15s'
-                }}>읽음</button>
-              )}
-            </div>
-          );
-        })}
-        {alerts.length === 0 && <EmptyState text="알림 없음" />}
-      </div>
-    </Card>
+            );
+          })}
+          {alerts.length === 0 && <EmptyState text="알림 없음" />}
+        </div>
+      </Card>
+    </div>
   );
 }
 
-// ── AI 모델 설정 탭 (NEW) ──
-function AIModelTab({ siteId }) {
+// ═══════════════════════════════════════════
+// TAB 10: SETTINGS (AI Model + Site Config)
+// ═══════════════════════════════════════════
+
+function SettingsTab({ siteId, sites }) {
+  const site = sites.find(s => s.id === siteId);
   const [draftModel, setDraftModel] = useState('deepseek-chat');
   const [polishModel, setPolishModel] = useState('claude-sonnet-4-20250514');
+  const [target, setTarget] = useState(site?.daily_target || 10);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [paused, setPaused] = useState(false);
 
   const draft = DRAFT_MODELS.find(m => m.id === draftModel) || DRAFT_MODELS[0];
   const polish = POLISH_MODELS.find(m => m.id === polishModel) || POLISH_MODELS[0];
@@ -550,6 +1139,7 @@ function AIModelTab({ siteId }) {
     setSaving(true);
     await supabase.from('sites').update({
       ai_config: { draft_model: draftModel, polish_model: polishModel },
+      daily_target: target,
       updated_at: new Date().toISOString()
     }).eq('id', siteId);
     setSaving(false);
@@ -558,176 +1148,134 @@ function AIModelTab({ siteId }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 720 }}>
-      {/* 편당 비용 요약 */}
-      <Card style={{ background: 'var(--header-gradient)', border: '1px solid var(--accent-bg)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 760 }}>
+      {/* Cost Summary */}
+      <Card style={{ background: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #f0f9ff 100%)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: 12, color: 'var(--text-dim)', fontWeight: 500, marginBottom: 4 }}>예상 편당 비용</div>
-            <div style={{ fontSize: 36, fontWeight: 900, color: 'var(--accent)', letterSpacing: -1 }}>
-              {fmtKRW(totalCost)}
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 4 }}>
-              초안 {fmtKRW(draft.costPer)} + 폴리싱 {fmtKRW(polish.costPer)}
-            </div>
+            <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, marginBottom: 4 }}>예상 편당 비용</div>
+            <div style={{ fontSize: 36, fontWeight: 900, color: '#6366f1', letterSpacing: -1 }}>{fmtKRW(totalCost)}</div>
+            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>초안 {fmtKRW(draft.costPer)} + 폴리싱 {fmtKRW(polish.costPer)}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 12, color: 'var(--text-dim)', marginBottom: 4 }}>일 10편 기준 월 비용</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>
-              {fmtKRW(totalCost * 10 * 30)}
-            </div>
+            <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>일 10편 기준 월 비용</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#1a1a2e' }}>{fmtKRW(totalCost * 10 * 30)}</div>
           </div>
         </div>
       </Card>
 
-      {/* 초안 모델 선택 */}
+      {/* Draft Model */}
       <Card>
         <SectionTitle>초안 모델 (Draft)</SectionTitle>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {DRAFT_MODELS.map(m => (
             <label key={m.id} style={{
               display: 'flex', alignItems: 'center', gap: 14,
               padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
-              border: draftModel === m.id ? '2px solid var(--accent)' : '1px solid var(--card-border)',
-              background: draftModel === m.id ? 'var(--accent-bg)' : 'var(--bg)',
-              transition: 'all 0.15s ease'
+              border: draftModel === m.id ? '2px solid #6366f1' : '1px solid #e2e8f0',
+              background: draftModel === m.id ? 'rgba(99,102,241,0.04)' : '#f8fafc',
+              transition: 'all 0.15s'
             }}>
-              <input
-                type="radio" name="draft" value={m.id}
-                checked={draftModel === m.id}
-                onChange={() => setDraftModel(m.id)}
-                style={{ display: 'none' }}
-              />
+              <input type="radio" name="draft" value={m.id} checked={draftModel === m.id}
+                onChange={() => setDraftModel(m.id)} style={{ display: 'none' }} />
               <div style={{
                 width: 20, height: 20, borderRadius: '50%', border: '2px solid',
-                borderColor: draftModel === m.id ? 'var(--accent)' : 'var(--border-light)',
+                borderColor: draftModel === m.id ? '#6366f1' : '#cbd5e1',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
               }}>
-                {draftModel === m.id && (
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--accent)' }} />
-                )}
+                {draftModel === m.id && <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#6366f1' }} />}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>{m.name}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 2 }}>
-                  속도: {m.speed} · 품질: {m.quality}
-                </div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#1a1a2e' }}>{m.name}</div>
+                <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>속도: {m.speed} · 품질: {m.quality}</div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)' }}>{fmtKRW(m.costPer)}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>편당</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#6366f1' }}>{fmtKRW(m.costPer)}</div>
+                <div style={{ fontSize: 11, color: '#94a3b8' }}>편당</div>
               </div>
             </label>
           ))}
         </div>
       </Card>
 
-      {/* 폴리싱 모델 선택 */}
+      {/* Polish Model */}
       <Card>
         <SectionTitle>폴리싱 모델 (Polish)</SectionTitle>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14, marginTop: -8 }}>
+        <p style={{ fontSize: 13, color: '#4a5568', marginBottom: 14, marginTop: -8 }}>
           초안을 Claude로 다듬어 문체와 SEO를 개선합니다. OFF 시 초안을 그대로 발행합니다.
         </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {POLISH_MODELS.map(m => (
             <label key={m.id} style={{
               display: 'flex', alignItems: 'center', gap: 14,
               padding: '14px 16px', borderRadius: 12, cursor: 'pointer',
-              border: polishModel === m.id ? '2px solid var(--accent)' : '1px solid var(--card-border)',
-              background: polishModel === m.id ? 'var(--accent-bg)' : 'var(--bg)',
-              transition: 'all 0.15s ease'
+              border: polishModel === m.id ? '2px solid #6366f1' : '1px solid #e2e8f0',
+              background: polishModel === m.id ? 'rgba(99,102,241,0.04)' : '#f8fafc',
+              transition: 'all 0.15s'
             }}>
-              <input
-                type="radio" name="polish" value={m.id}
-                checked={polishModel === m.id}
-                onChange={() => setPolishModel(m.id)}
-                style={{ display: 'none' }}
-              />
+              <input type="radio" name="polish" value={m.id} checked={polishModel === m.id}
+                onChange={() => setPolishModel(m.id)} style={{ display: 'none' }} />
               <div style={{
                 width: 20, height: 20, borderRadius: '50%', border: '2px solid',
-                borderColor: polishModel === m.id ? 'var(--accent)' : 'var(--border-light)',
+                borderColor: polishModel === m.id ? '#6366f1' : '#cbd5e1',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
               }}>
-                {polishModel === m.id && (
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--accent)' }} />
-                )}
+                {polishModel === m.id && <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#6366f1' }} />}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#1a1a2e' }}>
                   {m.name}
-                  {m.id === 'none' && <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}> (비용 절감)</span>}
+                  {m.id === 'none' && <span style={{ color: '#94a3b8', fontWeight: 400 }}> (비용 절감)</span>}
                 </div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: m.costPer > 0 ? 'var(--accent)' : 'var(--green)' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: m.costPer > 0 ? '#6366f1' : '#10b981' }}>
                   {m.costPer > 0 ? fmtKRW(m.costPer) : 'FREE'}
                 </div>
-                {m.costPer > 0 && <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>편당</div>}
+                {m.costPer > 0 && <div style={{ fontSize: 11, color: '#94a3b8' }}>편당</div>}
               </div>
             </label>
           ))}
         </div>
       </Card>
 
-      {/* 저장 버튼 */}
-      <button onClick={handleSave} disabled={saving} style={{
-        background: saved ? 'var(--green)' : 'var(--accent)',
-        border: 'none', borderRadius: 12, padding: '14px 24px',
-        color: 'white', fontSize: 15, fontWeight: 700, cursor: 'pointer',
-        transition: 'all 0.2s', opacity: saving ? 0.6 : 1,
-        boxShadow: '0 2px 8px rgba(124,58,237,0.25)'
-      }}>
-        {saving ? '저장 중...' : saved ? '저장 완료' : 'AI 모델 설정 저장'}
-      </button>
-    </div>
-  );
-}
-
-// ── 설정 탭 ──
-function SettingsTab({ siteId, sites }) {
-  const site = sites.find(s => s.id === siteId);
-  const [target, setTarget] = useState(site?.daily_target || 10);
-  const [saving, setSaving] = useState(false);
-
-  const save = async () => {
-    setSaving(true);
-    await supabase.from('sites').update({ daily_target: target, updated_at: new Date().toISOString() }).eq('id', siteId);
-    setSaving(false);
-  };
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 560 }}>
+      {/* Site Config */}
       <Card>
         <SectionTitle>사이트 설정</SectionTitle>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <SettingRow label="사이트 이름" value={site?.name || '-'} />
-          <SettingRow label="도메인" value={site?.domain || '-'} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
-            <label style={{ fontSize: 12, color: 'var(--text-dim)', display: 'block', marginBottom: 6, fontWeight: 500 }}>
-              일일 발행 목표
-            </label>
+            <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4, fontWeight: 500 }}>사이트 이름</label>
+            <div style={{ fontSize: 14, fontWeight: 500, color: '#1a1a2e' }}>{site?.name || '-'}</div>
+          </div>
+          <div>
+            <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 4, fontWeight: 500 }}>도메인</label>
+            <div style={{ fontSize: 14, fontWeight: 500, color: '#1a1a2e' }}>{site?.domain || '-'}</div>
+          </div>
+          <div>
+            <label style={{ fontSize: 12, color: '#94a3b8', display: 'block', marginBottom: 6, fontWeight: 500 }}>일일 발행 목표</label>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <input
-                type="number" value={target} onChange={e => setTarget(Number(e.target.value))}
+              <input type="number" value={target} onChange={e => setTarget(Number(e.target.value))}
                 style={{
-                  background: 'var(--input-bg)', border: '1px solid var(--border-light)', borderRadius: 10,
-                  padding: '10px 14px', color: 'var(--text)', fontSize: 14, width: 100, fontWeight: 600
-                }}
-              />
-              <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>편/일</span>
-              <button onClick={save} disabled={saving} style={{
-                background: 'var(--accent)', border: 'none', borderRadius: 10, padding: '10px 20px',
-                color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                opacity: saving ? 0.6 : 1, transition: 'opacity 0.15s'
-              }}>{saving ? '저장 중...' : '저장'}</button>
+                  background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10,
+                  padding: '10px 14px', color: '#1a1a2e', fontSize: 14, width: 100, fontWeight: 600
+                }} />
+              <span style={{ fontSize: 13, color: '#94a3b8' }}>편/일</span>
             </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0' }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a2e' }}>발행 일시정지</div>
+              <div style={{ fontSize: 11, color: '#94a3b8' }}>ON 시 이 사이트 발행을 중단합니다</div>
+            </div>
+            <Toggle on={paused} set={setPaused} />
           </div>
         </div>
       </Card>
 
+      {/* Integration Status */}
       <Card>
         <SectionTitle>연동 상태</SectionTitle>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {[
             { name: 'Supabase Realtime', status: true },
             { name: 'GitHub Actions', status: true },
@@ -737,88 +1285,104 @@ function SettingsTab({ siteId, sites }) {
           ].map(s => (
             <div key={s.name} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '10px 14px', borderRadius: 10, background: 'var(--bg)'
+              padding: '10px 14px', borderRadius: 10, background: '#f8fafc'
             }}>
-              <span style={{ fontSize: 13, fontWeight: 500 }}>{s.name}</span>
+              <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a2e' }}>{s.name}</span>
               <Badge text={s.status ? '연결됨' : '미연결'} color={s.status ? 'green' : 'yellow'} />
             </div>
           ))}
         </div>
       </Card>
+
+      {/* Save */}
+      <button onClick={handleSave} disabled={saving} style={{
+        background: saved ? '#10b981' : '#6366f1', border: 'none', borderRadius: 12,
+        padding: '14px 24px', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+        transition: 'all 0.2s', opacity: saving ? 0.6 : 1,
+        boxShadow: '0 2px 8px rgba(99,102,241,0.3)'
+      }}>
+        {saving ? '저장 중...' : saved ? '저장 완료' : '설정 저장'}
+      </button>
     </div>
   );
 }
 
-// ── 헬퍼 컴포넌트 ──
-function SettingRow({ label, value }) {
+// ═══════════════════════════════════════════
+// TAB 11: ADMIN
+// ═══════════════════════════════════════════
+
+function AdminTab({ autoMode, setAutoMode, selNiches, connectedAff, connectedApi }) {
   return (
-    <div>
-      <label style={{ fontSize: 12, color: 'var(--text-dim)', display: 'block', marginBottom: 4, fontWeight: 500 }}>{label}</label>
-      <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>{value}</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1a1a2e' }}>관리자 패널</h2>
+
+      <Card>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a2e', marginBottom: 12 }}>시스템 상태</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          {[
+            { l: '자동모드', v: autoMode ? 'ON' : 'OFF', c: autoMode ? '#10b981' : '#ef4444' },
+            { l: '선택 니치', v: selNiches.length + '개', c: '#6366f1' },
+            { l: '수익화 연결', v: connectedAff + '개', c: '#f59e0b' },
+            { l: 'AI 모델', v: connectedApi + '개', c: '#3b82f6' },
+          ].map((s, i) => (
+            <div key={i} style={{
+              background: `${s.c}08`, border: `1px solid ${s.c}1a`, borderRadius: 12,
+              padding: 14, textAlign: 'center'
+            }}>
+              <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600 }}>{s.l}</div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: s.c, marginTop: 4 }}>{s.v}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a2e' }}>자동 생성 모드</div>
+          <Toggle on={autoMode} set={setAutoMode} />
+        </div>
+        <div style={{ fontSize: 12, color: '#94a3b8' }}>ON: CSV 소진 시 Trends+Reddit+AI에서 키워드 자동 발굴</div>
+      </Card>
     </div>
   );
 }
 
-function EmptyState({ text, small }) {
-  return (
-    <div style={{
-      textAlign: 'center', padding: small ? 20 : 48,
-      color: 'var(--text-dim)', fontSize: 13
-    }}>{text}</div>
-  );
-}
+// ═══════════════════════════════════════════
+// SETUP GUIDE
+// ═══════════════════════════════════════════
 
-function LoadingState() {
-  return (
-    <div style={{ textAlign: 'center', padding: 24, color: 'var(--text-dim)', fontSize: 13 }}>
-      로딩 중...
-    </div>
-  );
-}
-
-// ── 초기 설정 가이드 ──
 function SetupGuide() {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 24, background: 'var(--header-gradient)'
+      padding: 24, background: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #f0f9ff 100%)'
     }}>
       <Card style={{ maxWidth: 600, width: '100%' }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8, color: 'var(--text)' }}>
-          <span style={{ color: 'var(--accent)' }}>AutoBlog</span> Dashboard 설정
+        <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8, color: '#1a1a2e' }}>
+          <span style={{ color: '#6366f1' }}>Clone Factory</span> 설정
         </h2>
-        <p style={{ color: 'var(--text-dim)', fontSize: 13, marginBottom: 28 }}>Supabase 연동이 필요합니다.</p>
-
+        <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 28 }}>Supabase 연동이 필요합니다.</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {[
-            {
-              step: '1', title: 'Supabase SQL 스키마 실행',
-              desc: 'Supabase Dashboard → SQL Editor → supabase_schema_final.sql 내용 붙여넣기 → Run'
-            },
-            {
-              step: '2', title: '환경변수 설정',
-              desc: 'Vercel: Settings → Environment Variables에 NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY 추가',
-              code: 'NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co\nNEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key'
-            },
-            {
-              step: '3', title: '배포',
-              desc: 'GitHub push → Vercel 자동 배포 → 대시보드 접속'
-            }
+            { step: '1', title: 'Supabase SQL 스키마 실행', desc: 'Supabase Dashboard → SQL Editor → supabase_schema_final.sql 내용 붙여넣기 → Run' },
+            { step: '2', title: '환경변수 설정', desc: 'Vercel: Settings → Environment Variables에 추가',
+              code: 'NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co\nNEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key' },
+            { step: '3', title: '배포', desc: 'GitHub push → Vercel 자동 배포 → 대시보드 접속' }
           ].map(item => (
             <div key={item.step} style={{ display: 'flex', gap: 14 }}>
               <div style={{
-                width: 28, height: 28, borderRadius: '50%', background: 'var(--accent-bg)',
-                color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 28, height: 28, borderRadius: '50%', background: 'rgba(99,102,241,0.06)',
+                color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 13, fontWeight: 700, flexShrink: 0
               }}>{item.step}</div>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>{item.title}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{item.desc}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, color: '#1a1a2e' }}>{item.title}</div>
+                <div style={{ fontSize: 12, color: '#4a5568' }}>{item.desc}</div>
                 {item.code && (
                   <div style={{
-                    background: 'var(--input-bg)', borderRadius: 10, padding: 14, fontSize: 12,
-                    fontFamily: 'monospace', border: '1px solid var(--border-light)', marginTop: 8,
-                    whiteSpace: 'pre-wrap', color: 'var(--text)', lineHeight: 1.8
+                    background: '#f8fafc', borderRadius: 10, padding: 14, fontSize: 12,
+                    fontFamily: 'monospace', border: '1px solid #e2e8f0', marginTop: 8,
+                    whiteSpace: 'pre-wrap', color: '#1a1a2e', lineHeight: 1.8
                   }}>{item.code}</div>
                 )}
               </div>
