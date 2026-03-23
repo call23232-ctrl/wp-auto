@@ -75,11 +75,8 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "skip=false" >> $GITHUB_OUTPUT
           else
-            python -c "
-from scripts.main import should_run_now
-import sys
-sys.exit(0 if should_run_now() else 1)
-" && echo "skip=false" >> $GITHUB_OUTPUT || echo "skip=true" >> $GITHUB_OUTPUT
+            python -c "from scripts.main import should_run_now; import sys; sys.exit(0 if should_run_now() else 1)" \
+              && echo "skip=false" >> $GITHUB_OUTPUT || echo "skip=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Run AutoBlog Engine (all sites)
