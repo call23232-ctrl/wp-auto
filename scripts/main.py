@@ -142,6 +142,128 @@ TARGET_READERS = [
     "소상공인", "투자자", "주부", "시니어", "취준생", "부업러",
 ]
 
+# ── 니치 그룹별 글쓰기 스타일 (톤 + 구조 + 비주얼 색상) ──
+# 각 니치 slug → 그룹 ID 매핑
+NICHE_GROUP_MAP = {
+    # 제품 리뷰/비교
+    "ai-tools": "product", "tech": "product", "smart-home": "product",
+    "pet": "product", "appliance": "product", "beauty": "product",
+    "health": "product", "baby": "product", "fitness": "product",
+    "finance": "product", "education": "product",
+    # 뉴스/리서치
+    "news-sbs": "news", "news-kbs": "news", "news-jtbc": "news",
+    "news-mbc": "news", "sns-trend": "news", "top10-corp": "news",
+    # 섹터 리서치
+    "s-semi": "sector", "s-ai": "sector", "s-defense": "sector",
+    "s-pharma": "sector", "s-chem": "sector", "s-robot": "sector",
+    "s-security": "sector", "s-enter": "sector", "s-ev": "sector",
+    "s-space": "sector",
+    # 정보 서비스
+    "gov-support": "info", "tax-guide": "info", "agency": "info",
+    "event": "info", "travel": "info", "keyword-collect": "info",
+    # 홍보/마케팅
+    "niche-promo": "promo", "brand": "promo", "compare-land": "promo",
+}
+
+NICHE_STYLES = {
+    "product": {
+        "label": "제품 리뷰/비교",
+        "tone": (
+            "직접 써본 사람의 생생한 경험담 톤. "
+            "'실제로 2주간 사용해보니' 같은 체험 기반 서술. "
+            "스펙 나열보다 '그래서 내 생활이 어떻게 바뀌었는지'에 집중."
+        ),
+        "value_focus": "돈 아끼기(가성비/최저가) + 시간 절약(비교 대신 해줌) + 남들이 모르는 숨은 기능",
+        "must_blocks": (
+            "- 장단점 비교표 <table> 필수 (가격/성능/가성비 — 돈 아끼는 선택 도움)\n"
+            "- <div class=\"tip-box\">: '이것만 확인하면 실패 없는 구매' (노력 절감)\n"
+            "- <blockquote>: '대부분 모르는 숨은 기능/스펙' (남들이 모르는 정보)\n"
+            "- <div class=\"key-point\">: '결론: 이 예산이면 이것, 저 예산이면 저것' (성과 향상)"
+        ),
+        "accent": "#6366f1",
+        "accent_light": "#ede9fe",
+        "accent_gradient": "linear-gradient(135deg,#6366f1,#818cf8)",
+    },
+    "news": {
+        "label": "뉴스/리서치",
+        "tone": (
+            "속보 기자의 팩트 중심 톤. 두괄식 서술 (결론→근거→배경). "
+            "감정 배제, 팩트와 수치로 승부. "
+            "'왜 지금 이게 중요한지'를 첫 3줄에서 설명."
+        ),
+        "value_focus": "돈 버는 기회(시장 변화에서 기회 포착) + 시간 절약(핵심만 정리) + 남들이 모르는 배경",
+        "must_blocks": (
+            "- <blockquote>: 핵심 팩트 — '이 수치가 의미하는 것' (남들이 모르는 해석)\n"
+            "- <div class=\"key-point\">: '30초 요약' — 바쁜 독자를 위한 핵심 (시간 절약)\n"
+            "- <table>: 이해관계자별 영향 비교 — '나에게 어떤 영향?' (돈/시간 영향 분석)\n"
+            "- <div class=\"tip-box\">: '이 뉴스로 돈 아끼는/버는 법' (실질 해석)"
+        ),
+        "accent": "#dc2626",
+        "accent_light": "#fef2f2",
+        "accent_gradient": "linear-gradient(135deg,#dc2626,#ef4444)",
+    },
+    "sector": {
+        "label": "섹터 리서치",
+        "tone": (
+            "증권 애널리스트 리포트 톤. 데이터와 전망 중심. "
+            "'수치로 보는 현황 → 전문가 분석 → 투자 시사점' 흐름. "
+            "추측이 아닌 근거 기반 서술, 출처 명시."
+        ),
+        "value_focus": "돈 버는 정보(투자 시사점) + 성과 향상(더 나은 투자 판단) + 남들이 모르는 데이터",
+        "must_blocks": (
+            "- <table>: 핵심 수치 비교표 — 경쟁사/섹터/기간별 (성과 향상 판단 근거)\n"
+            "- <blockquote>: '시장이 아직 반영 못한 사실' (남들이 모르는 정보 = 돈 버는 기회)\n"
+            "- <div class=\"key-point\">: '투자 시사점: 지금 해야 할 것/하지 말아야 할 것' (성과 향상)\n"
+            "- <div class=\"tip-box\">: '리스크 체크리스트 — 이것만 확인하세요' (노력 절감)"
+        ),
+        "accent": "#0891b2",
+        "accent_light": "#ecfeff",
+        "accent_gradient": "linear-gradient(135deg,#0891b2,#06b6d4)",
+    },
+    "info": {
+        "label": "정보 서비스",
+        "tone": (
+            "친절한 공무원이 알려주는 톤. 복잡한 제도를 쉽게 풀어 설명. "
+            "'누가, 언제, 어떻게 신청하는지' 단계별 가이드 중심. "
+            "전문 용어는 반드시 괄호로 쉬운 설명 병기."
+        ),
+        "value_focus": "돈 아끼기(지원금/혜택) + 노력 절감(복잡한 절차 간소화) + 남들이 모르는 숨은 혜택",
+        "must_blocks": (
+            "- <table>: 자격 요건/지원 금액/신청 기간 정리표 (돈 아끼는 정보 한눈에)\n"
+            "- <div class=\"tip-box\">: '90%가 놓치는 추가 혜택/서류' (남들이 모르는 것)\n"
+            "- <div class=\"key-point\">: '나도 대상자? 3가지만 확인하세요' (노력 절감)\n"
+            "- <blockquote>: '이것 때문에 탈락하는 사람이 많습니다' (시간+돈 절약)"
+        ),
+        "accent": "#059669",
+        "accent_light": "#ecfdf5",
+        "accent_gradient": "linear-gradient(135deg,#059669,#10b981)",
+    },
+    "promo": {
+        "label": "홍보/마케팅",
+        "tone": (
+            "브랜드 스토리텔러 톤. '문제 상황 → 해결 과정 → 변화된 결과' 내러티브. "
+            "감성적 공감과 사회적 증거(후기, 수치) 조화. "
+            "직접적 판매 권유 대신 '왜 이것이 가치 있는지' 설득."
+        ),
+        "value_focus": "성과 향상(Before→After 변화) + 시간 절약(직접 찾아보지 않아도 됨) + 돈 아끼기(할인/프로모션)",
+        "must_blocks": (
+            "- <blockquote>: 실사용자 Before→After 변화 수치 (성과 향상 증거)\n"
+            "- <div class=\"tip-box\">: '오늘 시작하는 가장 쉬운 방법' (노력 절감)\n"
+            "- <table>: 경쟁 대안 비교표 — 가격/기능/만족도 (돈 아끼는 선택)\n"
+            "- <div class=\"key-point\">: '이 글의 핵심: 왜 지금인가' (시간 절약)"
+        ),
+        "accent": "#d946ef",
+        "accent_light": "#fdf4ff",
+        "accent_gradient": "linear-gradient(135deg,#d946ef,#e879f9)",
+    },
+}
+
+def get_niche_style(category):
+    """카테고리(니치 slug)에 해당하는 스타일 반환. 없으면 product 기본값."""
+    group = NICHE_GROUP_MAP.get(category, "product")
+    return NICHE_STYLES.get(group, NICHE_STYLES["product"]), group
+
+
 # 니치별 도메인 키워드 (AI가 조합에 사용)
 NICHE_DOMAINS = {
     "ai-tools": ["ChatGPT", "Claude", "Gemini", "Midjourney", "Cursor", "NotebookLM", "Perplexity", "Copilot", "Suno", "Gamma", "Descript", "Runway"],
@@ -395,54 +517,96 @@ class DynamicKeywordGenerator:
 # ═══════════════════════════════════════════════════════
 
 # ── 한국어 프롬프트 (소비자 중심) ──
-DRAFT_PROMPT_KO = """당신은 이 분야를 직접 경험하고 연구한 전문가입니다.
-독자가 검색한 고민을 완벽히 해결하는 글을 씁니다.
+DRAFT_PROMPT_KO = """당신은 이 분야를 직접 경험하고 연구한 전문가이며, 동시에 독자의 감정을 움직이는 스토리텔러입니다.
 
 키워드: {keyword}
 검색의도: {intent}
 카테고리: {category}
 고유코드: {unique_seed}
 
-=== 핵심 원칙: 독자 만족 최우선 ===
-1. 제목: 독자의 실제 고민을 정확히 반영하는 제목. <title> 태그로 감싸기
-   - "이걸 읽으면 내 문제가 해결되겠다"라는 확신을 주는 제목
-2. 도입부: 3~4문장. 독자의 상황을 정확히 공감하고, 이 글이 줄 수 있는 가치를 약속
-3. 본문: H2 소제목 5~7개, 각 소제목 아래 300~500자
-   - 모든 주장에 구체적 수치/비교/출처 포함 (근거 없는 문장 금지)
-   - 독자가 바로 실행할 수 있는 구체적 액션 아이템 포함
-   - 다른 블로그에서 찾기 어려운 독자적 인사이트 1개 이상
-   - <strong> 태그로 핵심 정보 강조 (최소 5개)
-4. 마무리: 핵심 3줄 요약 + "지금 바로 할 수 있는 것" 구체적 안내
-5. 톤: 친구에게 설명하듯 자연스럽고 따뜻한 대화체
+=== 독자가 진짜 원하는 6가지 가치 (핵심 프레임워크) ===
+모든 문단은 아래 6가지 중 최소 1가지를 독자에게 제공해야 합니다:
+1. 돈 버는 정보: 수익을 만드는 구체적 방법/기회/루트
+2. 돈 아끼는 정보: 할인, 무료 대안, 숨겨진 혜택, 불필요한 지출 차단법
+3. 시간 절약: 빠른 방법, 자동화, 핵심만 정리, "이것만 하면 된다"
+4. 노력 절감: 쉬운 대안, 템플릿, 복사해서 쓸 수 있는 것, 단계 축소
+5. 성과 향상: 같은 노력으로 더 나은 결과를 내는 전략/도구/팁
+6. 남들이 모르는 것: 업계 인사이더 정보, 숨겨진 기능, 잘 안 알려진 혜택
+
+글을 읽는 독자가 "이 글에서 진짜 쓸모 있는 걸 얻었다"고 느껴야 합니다.
+빈 주장, 일반론, 누구나 아는 상식은 가치가 없습니다.
+
+=== 글의 감정 설계 (시나리오 아크) ===
+이 글은 독자의 감정을 다음 흐름으로 이끌어야 합니다:
+1단계 [감정 훅] 공감 → 2단계 [호기심] "이런 게 있었어?" → 3단계 [신뢰+도파민] 놀라운 수치/사실 → 4단계 [행동 욕구] "나도 해봐야지"
+
+=== 구조 규칙 ===
+1. 제목: <title> 태그. 독자가 "이건 꼭 읽어야 해"라고 느끼는 제목
+   - 숫자/구체적 혜택/긴급성 중 1개 이상 포함
+   - SEO: 키워드를 제목 앞부분에 자연스럽게 배치
+
+2. 도입부 (감정 훅): 3~4문장
+   - 첫 문장: 독자의 고민/상황을 콕 찔러 감정 이입 유도
+   - 둘째 문장: "사실 대부분은 이걸 모르고 있어요" 식의 호기심 점화
+   - 마지막: 이 글을 읽으면 얻을 구체적 가치를 약속 (6가지 중 어떤 가치인지 명시)
+
+3. 본문: H2 소제목 5~7개, 각 300~500자
+   - 키워드를 H2 2~3개에 자연스럽게 포함 (SEO)
+   - 모든 주장에 구체적 수치/비교/출처 (근거 없는 문장 금지)
+   - 각 섹션의 첫 문장에서 "이 섹션을 읽으면 얻는 가치"를 암시
+   - <strong> 핵심 정보 강조 (최소 7개)
+
+4. 가치 블록 (본문 전체에 걸쳐 필수 삽입):
+   - <blockquote>: 남들이 모르는 놀라운 사실/수치 (도파민 트리거)
+   - <div class="tip-box">: 바로 실행하면 시간/돈/노력을 절약하는 구체적 팁
+   - <div class="key-point">: 이 섹션에서 당장 써먹을 수 있는 핵심 1줄
+   - <table>: 비교해서 최적의 선택을 돕는 표 (<thead>+<tbody> 필수)
+   위 4종 블록을 글 전체에 2~3개 필수 삽입
+
+5. 마무리: "이 글에서 얻은 것" 핵심 3줄 + 구체적 다음 행동 1가지
+
+6. 톤: 친구에게 설명하듯 따뜻하면서도 전문적
    - "~입니다", "~한 것입니다" 같은 딱딱한 문체 금지
-   - 독자를 존중하되 격식체보다 친근체
-6. 분량: 4,000~7,000자 (빈 내용 없이 알차게)
-7. 구성: 읽기 쉬운 깔끔한 정리 + 논리적 전개
-   - 짧은 문단, 충분한 여백, 핵심 볼드 처리
-   - 비교표(<table>)나 목록(<ul>/<ol>) 적극 활용
+   - 질문→답변, 문제→해결 패턴으로 몰입감 유지
+   - 짧은 문장(5어절)과 긴 문장(15어절) 리듬감 있게 교차
+
+7. 분량: 5,000~7,000자 (알차고 깊이 있게)
 
 === HTML 규칙 ===
 - <title>글제목</title>을 최상단에
-- <h2>, <p>, <strong>, <ul>/<ol>, <table> 사용
+- <h2>, <p>, <strong>, <ul>/<ol>, <table>, <blockquote> 사용
+- <div class="tip-box">, <div class="key-point"> 사용 가능
 - <h1> 금지 (워드프레스 자동 생성)
 - 각 <p>는 2~4문장, H2 사이 최소 2개 <p>
+- <table>은 반드시 <thead>와 <tbody>로 구분
 """
 
-POLISH_PROMPT_KO = """아래 블로그 초안을 독자가 감동할 수준으로 업그레이드하세요.
+POLISH_PROMPT_KO = """아래 블로그 초안을 독자가 즐겨찾기에 저장할 수준으로 업그레이드하세요.
 
 키워드: {keyword}
 
-업그레이드 규칙:
+=== 가치 검증 (최우선) ===
+초안의 모든 문단을 아래 6가지 가치 기준으로 점검하세요:
+- 돈 버는 정보 / 돈 아끼는 정보 / 시간 절약 / 노력 절감 / 성과 향상 / 남들이 모르는 것
+각 문단이 6가지 중 하나도 제공하지 않으면 → 구체적 수치/팁/방법으로 보강하거나 삭제
+"일반론", "~가 중요합니다", "~를 고려해야 합니다" 같은 빈 문장은 100% 제거
+
+=== 업그레이드 규칙 ===
 1. AI 특유 표현 완전 제거:
    "다양한", "중요합니다", "살펴보겠습니다", "알아보겠습니다", "관심이 높아지고 있습니다"
    → 실제 사람이 쓴 것처럼 자연스러운 구어체로 100% 교체
-2. 모든 문단에 구체적 수치/사례/비교 1개 이상 추가 (빈 주장 금지)
-3. 문장 리듬: 짧은 문장(5어절)과 긴 문장(15어절) 혼합
-4. 독자 공감: 질문→답변, 문제→해결 패턴으로 몰입감
-5. 키워드를 H2 2~3개, 도입부, 마무리에 자연스럽게 배치
-6. HTML 구조 유지, 내용만 퀄리티업
-7. <strong> 최소 5개 이상
-8. 4,000자 미만이면 실용적 정보를 보강하여 4,000자 이상으로
+2. 모든 문단에 구체적 수치/사례/비교 1개 이상 (빈 주장 금지)
+3. 문장 리듬: 짧은 문장(5어절)과 긴 문장(15어절) 교차
+4. 감정 설계: 도입부에 감정 훅 → 본문에서 호기심+놀라움 → 마무리에서 행동 욕구
+5. 키워드를 H2 2~3개, 도입부, 마무리에 자연스럽게 배치 (SEO)
+6. 가치 블록 확인: <blockquote> 1개+, <div class="tip-box"> 1개+, <div class="key-point"> 1개+ 없으면 추가
+   - tip-box: "이걸 하면 ~를 절약할 수 있어요" 식의 구체적 실행 팁
+   - key-point: "이 섹션의 핵심: ~" 식의 즉시 활용 가능 요약
+   - blockquote: "대부분 모르지만 사실 ~" 식의 놀라운 정보
+7. <strong> 최소 7개 이상
+8. 5,000자 미만이면 실용적 정보를 보강하여 5,000자 이상으로
+9. HTML 구조 유지, 내용만 퀄리티업
+10. <table>이 있으면 <thead>+<tbody> 구조인지 확인
 
 초안:
 {draft}
@@ -503,33 +667,60 @@ Draft:
 """
 
 # ── AdSense 승인 전용 프롬프트 (한국어) ──
-ADSENSE_DRAFT_PROMPT_KO = """당신은 이 분야의 권위 있는 전문가입니다.
-독자가 즐겨찾기에 저장할 만큼 완벽한 레퍼런스 글을 작성합니다.
+ADSENSE_DRAFT_PROMPT_KO = """당신은 이 분야의 권위 있는 전문가이며, 독자의 감정을 설계하는 스토리텔러입니다.
+독자가 즐겨찾기에 저장하고 주변에 공유할 만큼 완벽한 레퍼런스 글을 작성합니다.
 
 키워드: {keyword}
 검색의도: {intent}
 카테고리: {category}
 고유코드: {unique_seed}
 
-=== AdSense 승인 품질 기준 ===
-1. 제목: 전문적이면서 검색 친화적. <title> 태그
-2. 도입부: 4~5문장. 이 주제가 왜 중요한지, 독자가 무엇을 얻을 수 있는지 명확히
-3. 본문: H2 소제목 7~9개, 각 소제목 아래 400~600자
-   - 모든 주장에 데이터 출처, 통계, 전문가 의견 포함
-   - 비교표, 체크리스트, 단계별 가이드 등 실용적 구성
-   - 독자가 바로 활용할 수 있는 액션 아이템 각 섹션마다 1개
-   - <strong> 강조 최소 8개
+=== 독자가 진짜 원하는 6가지 가치 (핵심 프레임워크) ===
+모든 문단은 아래 6가지 중 최소 1가지를 독자에게 제공해야 합니다:
+1. 돈 버는 정보: 수익을 만드는 구체적 방법/기회/루트
+2. 돈 아끼는 정보: 할인, 무료 대안, 숨겨진 혜택, 불필요한 지출 차단법
+3. 시간 절약: 빠른 방법, 자동화, 핵심만 정리, "이것만 하면 된다"
+4. 노력 절감: 쉬운 대안, 템플릿, 복사해서 쓸 수 있는 것, 단계 축소
+5. 성과 향상: 같은 노력으로 더 나은 결과를 내는 전략/도구/팁
+6. 남들이 모르는 것: 업계 인사이더 정보, 숨겨진 기능, 잘 안 알려진 혜택
+
+빈 주장, 일반론, 누구나 아는 상식은 가치가 없습니다. 독자가 "이건 진짜 유용하다"고 느끼는 정보만 담으세요.
+
+=== 글의 감정 설계 (시나리오 아크) ===
+1단계 [감정 훅] 공감 → 2단계 [호기심] "이런 게 있었어?" → 3단계 [신뢰+도파민] 놀라운 수치/사실 → 4단계 [행동 욕구] "나도 해봐야지"
+
+=== AdSense 승인 + SEO 최적화 품질 기준 ===
+1. 제목: <title> 태그. 키워드를 앞부분에 자연스럽게 포함. 전문적+검색 친화적
+   - 독자에게 제공하는 가치가 제목에 드러나야 함 (절약/비법/방법/비교 등)
+2. 도입부 (감정 훅): 4~5문장
+   - 첫 문장에서 독자의 상황/고민을 정확히 공감
+   - "사실 대부분은 이걸 놓치고 있어요" 식의 호기심 점화
+   - 이 글을 읽으면 얻는 구체적 가치를 약속 (6가지 가치 중 어떤 것인지 명시)
+3. 본문: H2 소제목 7~9개, 각 400~600자
+   - 키워드를 H2 3~4개에 자연스럽게 포함 (SEO)
+   - 모든 주장에 데이터/통계/전문가 의견 (E-E-A-T)
+   - 각 섹션에서 독자가 당장 써먹을 수 있는 액션 아이템 1개 이상
+   - <strong> 강조 최소 10개
    - 외부 광고성 링크 절대 금지
-4. 마무리: 핵심 요약 5줄 + FAQ 3개 (자주 묻는 질문과 답변)
-5. 톤: 신뢰감 있는 전문가 톤 + 읽기 쉬운 구성
-6. 분량: 5,000~8,000자 (빈틈없이 상세하게)
-7. 품질: 이 글 하나로 해당 주제의 모든 궁금증이 해결되는 수준
+4. 가치 블록 (본문 전체에 3~4개 필수):
+   - <blockquote>: 남들이 모르는 놀라운 사실/수치 (도파민 트리거)
+   - <div class="tip-box">: 바로 실행하면 돈/시간/노력을 절약하는 구체적 팁
+   - <div class="key-point">: 이 섹션에서 당장 써먹을 수 있는 핵심 1줄
+   - <table>: 비교해서 최적의 선택을 돕는 표 (<thead>+<tbody> 필수)
+5. 마무리: "이 글에서 얻은 것" 핵심 3~5줄 + FAQ 3개
+6. 톤: 신뢰감 있는 전문가 + 따뜻한 대화체
+   - 질문→답변, 문제→해결 패턴
+   - 짧은 문장과 긴 문장 리듬감 있게 교차
+7. 분량: 5,000~8,000자 (빈틈없이 상세하게)
+8. 품질: 이 글 하나로 해당 주제의 모든 궁금증이 해결되는 수준
 
 === HTML 규칙 ===
 - <title>글제목</title>을 최상단에
-- <h2>, <h3>, <p>, <strong>, <ul>/<ol>, <table> 사용
+- <h2>, <h3>, <p>, <strong>, <ul>/<ol>, <table>, <blockquote> 사용
+- <div class="tip-box">, <div class="key-point"> 사용 가능
 - <h1> 금지
 - 각 <p>는 2~3문장, H2 사이 최소 3개 <p>
+- <table>은 반드시 <thead>와 <tbody>로 구분
 - FAQ는 <h3>질문</h3><p>답변</p> 형식
 """
 
@@ -564,16 +755,45 @@ Unique Code: {unique_seed}
 - FAQ format: <h3>Question</h3><p>Answer</p>
 """
 
+# ── 니치별 프롬프트 보강 템플릿 ──
+NICHE_PROMPT_INJECTION = """
+=== 이 글의 스타일 가이드 ({niche_label}) ===
+톤: {tone}
+
+이 니치에서 독자가 가장 원하는 가치: {value_focus}
+위 가치를 모든 섹션에서 구체적으로 제공하세요.
+
+필수 콘텐츠 블록:
+{must_blocks}
+
+이 스타일 가이드를 반드시 따르세요. 톤이 다른 니치와 섞이면 안 됩니다.
+"""
+
 # ── 프롬프트 선택 함수 ──
-def get_prompts(lang="ko", adsense_mode=False):
-    """언어와 모드에 따라 적절한 프롬프트 반환"""
+def get_prompts(lang="ko", adsense_mode=False, category=""):
+    """언어/모드/니치에 따라 프롬프트 반환 (니치 스타일 주입 포함)"""
     if adsense_mode:
         if lang == "en":
-            return ADSENSE_DRAFT_PROMPT_EN, POLISH_PROMPT_EN
-        return ADSENSE_DRAFT_PROMPT_KO, POLISH_PROMPT_KO
-    if lang == "en":
-        return DRAFT_PROMPT_EN, POLISH_PROMPT_EN
-    return DRAFT_PROMPT_KO, POLISH_PROMPT_KO
+            draft_tmpl, polish_tmpl = ADSENSE_DRAFT_PROMPT_EN, POLISH_PROMPT_EN
+        else:
+            draft_tmpl, polish_tmpl = ADSENSE_DRAFT_PROMPT_KO, POLISH_PROMPT_KO
+    elif lang == "en":
+        draft_tmpl, polish_tmpl = DRAFT_PROMPT_EN, POLISH_PROMPT_EN
+    else:
+        draft_tmpl, polish_tmpl = DRAFT_PROMPT_KO, POLISH_PROMPT_KO
+
+    # 니치 스타일 주입 (카테고리가 있으면)
+    if category and lang == "ko":
+        style, group = get_niche_style(category)
+        niche_extra = NICHE_PROMPT_INJECTION.format(
+            niche_label=style["label"],
+            tone=style["tone"],
+            value_focus=style.get("value_focus", ""),
+            must_blocks=style["must_blocks"],
+        )
+        draft_tmpl = draft_tmpl.rstrip() + "\n" + niche_extra
+
+    return draft_tmpl, polish_tmpl
 
 
 class ContentGenerator:
@@ -598,7 +818,7 @@ class ContentGenerator:
                 f"{SITE_ID}-{keyword}-{datetime.now(KST).isoformat()}-{random.random()}".encode()
             ).hexdigest()[:12]
 
-        draft_tmpl, polish_tmpl = get_prompts(lang, adsense_mode)
+        draft_tmpl, polish_tmpl = get_prompts(lang, adsense_mode, category=category)
         prompt = draft_tmpl.format(keyword=keyword, intent=intent, category=category, unique_seed=unique_seed)
 
         draft = None
@@ -766,95 +986,113 @@ class ContentGenerator:
 # ═══════════════════════════════════════════════════════
 class QualityGate:
     """
-    품질 채점 기준 (100점 만점):
-    - 콘텐츠 길이: 25점 (4000자+ = 25, 3000+ = 20, 2000+ = 15, 1500+ = 10, 미만 = 5)
-    - H2 소제목 수: 20점 (5~7개 = 20, 4개 = 17, 3개 = 12, 2개 = 8, 1개 이하 = 0)
-    - 문단 품질: 15점 (평균 80~400자 = 15, 50~500자 = 10, 기타 = 5)
-    - 이미지 포함: 15점 (있음 = 15, 없음 = 0)
-    - 키워드 H2 포함: 10점 (H2에 키워드 존재 = 10, 없음 = 0)
-    - <strong> 강조: 5점 (3개+ = 5, 1~2개 = 3, 없음 = 0)
-    - CTA 존재: 5점 (행동유도 문구 있음 = 5, 없음 = 0)
-    - HTML 구조: 5점 (h2+p 구조 정상 = 5, 비정상 = 0)
+    품질 채점 기준 (100점 만점) — SEO + 비주얼 통합:
+    - 콘텐츠 길이: 20점 (5000자+ = 20, 4000+ = 16, 3000+ = 12, 2000+ = 8, 미만 = 4)
+    - H2 소제목 수: 15점 (5~7개 = 15, 4/8 = 12, 3/9 = 8, 기타 = 0)
+    - 문단 품질: 10점 (평균 80~400자 = 10, 50~500자 = 7, 기타 = 3)
+    - 이미지 포함: 15점 (2장+ = 15, 1장 = 10, 없음 = 0)
+    - 키워드 SEO: 10점 (H2에 키워드 2개+ = 10, 1개 = 6, 없음 = 0)
+    - <strong> 강조: 5점 (5개+ = 5, 3~4개 = 3, 미만 = 0)
+    - CTA 존재: 5점
+    - HTML 구조: 5점
+    - 비주얼 블록: 15점 (blockquote/tip-box/key-point/table 중 3종+ = 15, 2종 = 10, 1종 = 5, 없음 = 0)
     """
 
-    MIN_SCORE = 70
+    MIN_SCORE = 85
 
     def score(self, content, keyword, has_image=False):
         total = 0
         details = {}
 
-        # 1. 콘텐츠 길이 (25점)
-        length = len(content)
-        if length >= 4000: pts = 25
-        elif length >= 3000: pts = 20
-        elif length >= 2000: pts = 15
-        elif length >= 1500: pts = 10
-        else: pts = 5
+        # 1. 콘텐츠 길이 (20점) — 5000자+ 기준 상향
+        length = len(re.sub(r'<[^>]+>', '', content))  # 태그 제외 순수 텍스트 길이
+        if length >= 5000: pts = 20
+        elif length >= 4000: pts = 16
+        elif length >= 3000: pts = 12
+        elif length >= 2000: pts = 8
+        else: pts = 4
         total += pts
-        details['length'] = f"{length}자 ({pts}점)"
+        details['length'] = f"{length}자 ({pts}/20)"
 
-        # 2. H2 소제목 수 (20점)
+        # 2. H2 소제목 수 (15점)
         h2s = re.findall(r'<h2[^>]*>(.*?)</h2>', content, re.IGNORECASE)
         h2_count = len(h2s)
-        if 5 <= h2_count <= 7: pts = 20
-        elif h2_count == 4: pts = 17
-        elif h2_count == 3: pts = 12
-        elif h2_count == 2 or h2_count == 8: pts = 8
+        if 5 <= h2_count <= 7: pts = 15
+        elif h2_count in (4, 8): pts = 12
+        elif h2_count in (3, 9): pts = 8
         else: pts = 0
         total += pts
-        details['h2_count'] = f"{h2_count}개 ({pts}점)"
+        details['h2_count'] = f"{h2_count}개 ({pts}/15)"
 
-        # 3. 문단 품질 (15점)
+        # 3. 문단 품질 (10점)
         paragraphs = re.findall(r'<p[^>]*>(.*?)</p>', content, re.IGNORECASE | re.DOTALL)
         if paragraphs:
             avg_len = sum(len(re.sub(r'<[^>]+>', '', p)) for p in paragraphs) / len(paragraphs)
-            if 80 <= avg_len <= 400: pts = 15
-            elif 50 <= avg_len <= 500: pts = 10
-            else: pts = 5
+            if 80 <= avg_len <= 400: pts = 10
+            elif 50 <= avg_len <= 500: pts = 7
+            else: pts = 3
         else:
             avg_len = 0
             pts = 0
         total += pts
-        details['paragraphs'] = f"{len(paragraphs)}개, 평균 {avg_len:.0f}자 ({pts}점)"
+        details['paragraphs'] = f"{len(paragraphs)}개, 평균 {avg_len:.0f}자 ({pts}/10)"
 
-        # 4. 이미지 포함 (15점)
-        img_in_content = '<img' in content.lower()
-        pts = 15 if (has_image or img_in_content) else 0
+        # 4. 이미지 포함 (15점) — 다중 이미지 보너스
+        img_count = len(re.findall(r'<img\s', content, re.IGNORECASE))
+        if not has_image and img_count == 0:
+            pts = 0
+        elif img_count >= 2 or has_image:
+            pts = 15 if img_count >= 2 else 10
+        else:
+            pts = 10
         total += pts
-        details['image'] = f"{'있음' if pts else '없음'} ({pts}점)"
+        details['image'] = f"{img_count}장 ({pts}/15)"
 
-        # 5. 키워드 H2 포함 (10점)
+        # 5. 키워드 SEO (10점) — H2 내 키워드 포함
         kw_words = keyword.lower().split()
         kw_in_h2 = sum(1 for h2 in h2s if any(w in h2.lower() for w in kw_words if len(w) > 1))
         pts = 10 if kw_in_h2 >= 2 else (6 if kw_in_h2 == 1 else 0)
         total += pts
-        details['keyword_h2'] = f"{kw_in_h2}개 H2 ({pts}점)"
+        details['seo_keyword'] = f"{kw_in_h2}개 H2 ({pts}/10)"
 
-        # 6. <strong> 강조 (5점)
-        strong_count = len(re.findall(r'<strong>', content, re.IGNORECASE))
-        pts = 5 if strong_count >= 3 else (3 if strong_count >= 1 else 0)
+        # 6. <strong> 강조 (5점) — 기준 상향
+        strong_count = len(re.findall(r'<strong', content, re.IGNORECASE))
+        pts = 5 if strong_count >= 5 else (3 if strong_count >= 3 else 0)
         total += pts
-        details['strong'] = f"{strong_count}개 ({pts}점)"
+        details['strong'] = f"{strong_count}개 ({pts}/5)"
 
         # 7. CTA 존재 (5점)
         cta_patterns = ['확인해', '시작해', '신청', '추천', '클릭', '바로가기', '지금', '놓치지']
         has_cta = any(p in content for p in cta_patterns)
         pts = 5 if has_cta else 0
         total += pts
-        details['cta'] = f"{'있음' if has_cta else '없음'} ({pts}점)"
+        details['cta'] = f"{'있음' if has_cta else '없음'} ({pts}/5)"
 
         # 8. HTML 구조 (5점)
         has_proper = '<h2' in content and '<p' in content and '</p>' in content
         pts = 5 if has_proper else 0
         total += pts
-        details['structure'] = f"{'정상' if has_proper else '비정상'} ({pts}점)"
+        details['structure'] = f"{'정상' if has_proper else '비정상'} ({pts}/5)"
+
+        # 9. 비주얼 블록 다양성 (15점) — NEW
+        visual_types = 0
+        if '<blockquote' in content: visual_types += 1
+        if 'tip-box' in content or '\U0001f4a1' in content or '실용 팁' in content: visual_types += 1
+        if 'key-point' in content or '\U0001f3af' in content or '핵심 포인트' in content: visual_types += 1
+        if '<table' in content: visual_types += 1
+        if visual_types >= 3: pts = 15
+        elif visual_types == 2: pts = 10
+        elif visual_types == 1: pts = 5
+        else: pts = 0
+        total += pts
+        details['visual_blocks'] = f"{visual_types}종 ({pts}/15)"
 
         return total, details
 
     def validate(self, content, keyword, has_image=False):
         score, details = self.score(content, keyword, has_image)
         passed = score >= self.MIN_SCORE
-        log.info(f"  품질 점수: {score}/100 ({'PASS' if passed else 'FAIL'})")
+        log.info(f"  품질 점수: {score}/100 ({'PASS' if passed else 'FAIL'}, 기준: {self.MIN_SCORE}점)")
         for k, v in details.items():
             log.info(f"    {k}: {v}")
         return passed, score, details
@@ -866,37 +1104,93 @@ class QualityGate:
 class ImageManager:
     """이미지 3중 폴백: Pexels(1순위) → Pixabay(2순위) → Unsplash(백업)"""
 
+    # 한국어 키워드 → 영문 검색어 매핑 (공통 카테고리)
+    KO_EN_FALLBACK = {
+        "대출": "loan finance", "보험": "insurance", "부동산": "real estate",
+        "투자": "investment", "주식": "stock market", "적금": "savings",
+        "건강": "health wellness", "다이어트": "diet fitness", "운동": "exercise",
+        "요리": "cooking food", "레시피": "recipe", "맛집": "restaurant",
+        "여행": "travel", "호텔": "hotel resort", "캠핑": "camping outdoor",
+        "육아": "parenting baby", "교육": "education study", "취업": "job career",
+        "IT": "technology", "프로그래밍": "programming coding", "앱": "mobile app",
+        "자동차": "car automotive", "인테리어": "interior design", "패션": "fashion style",
+        "뷰티": "beauty skincare", "반려동물": "pet dog cat", "결혼": "wedding",
+        "이사": "moving house", "세금": "tax accounting", "창업": "startup business",
+    }
+
+    def _to_english_query(self, keyword):
+        """한국어 키워드를 영문 이미지 검색어로 변환"""
+        # 이미 영문이면 그대로
+        if all(ord(c) < 128 or c == ' ' for c in keyword):
+            return keyword
+
+        # 매핑 테이블에서 매칭되는 단어 찾기
+        for ko, en in self.KO_EN_FALLBACK.items():
+            if ko in keyword:
+                return en
+
+        # 매칭 실패 시: 카테고리 기반 범용 검색어
+        return "lifestyle modern"
+
     def fetch_image(self, keyword):
-        """3중 폴백으로 이미지 검색"""
+        """3중 폴백으로 이미지 검색 (한국어 키워드 자동 영문 변환)"""
+        en_query = self._to_english_query(keyword)
+        log.info(f"  이미지 검색: '{keyword}' → '{en_query}'")
+
         # 1순위: Pexels (고품질 무료)
         if PEXELS_KEY:
-            result = self._fetch_pexels(keyword)
+            result = self._fetch_pexels(en_query)
             if result:
+                result["alt"] = keyword  # alt는 원래 한국어 키워드 유지
                 return result
 
         # 2순위: Pixabay (대량 무료)
         if PIXABAY_KEY:
-            result = self._fetch_pixabay(keyword)
+            result = self._fetch_pixabay(en_query)
             if result:
+                result["alt"] = keyword
                 return result
 
         # 3순위: Unsplash (백업)
         if UNSPLASH_KEY:
-            result = self._fetch_unsplash(keyword)
+            result = self._fetch_unsplash(en_query)
             if result:
+                result["alt"] = keyword
                 return result
 
-        log.warning(f"모든 이미지 API 실패: {keyword}")
+        log.warning(f"모든 이미지 API 실패: {keyword} (en: {en_query})")
         return None
 
-    def _fetch_pexels(self, keyword):
+    def fetch_multiple(self, keyword, count=3):
+        """여러 장의 이미지를 가져와 분산 삽입용으로 반환"""
+        en_query = self._to_english_query(keyword)
+        images = []
+
+        # Pexels에서 여러 장 가져오기
+        if PEXELS_KEY:
+            batch = self._fetch_pexels_batch(en_query, count)
+            images.extend(batch)
+
+        # 부족하면 Pixabay에서 보충
+        if len(images) < count and PIXABAY_KEY:
+            batch = self._fetch_pixabay_batch(en_query, count - len(images))
+            images.extend(batch)
+
+        # alt 태그를 한국어 키워드로 설정
+        for img in images:
+            img["alt"] = keyword
+
+        log.info(f"  이미지 {len(images)}장 확보 (목표: {count}장)")
+        return images
+
+    def _fetch_pexels(self, query):
         import requests
         try:
             log.info("  Pexels 이미지 검색 중...")
             resp = requests.get(
                 "https://api.pexels.com/v1/search",
                 headers={"Authorization": PEXELS_KEY},
-                params={"query": keyword, "per_page": 5, "orientation": "landscape", "size": "large"},
+                params={"query": query, "per_page": 5, "orientation": "landscape", "size": "large"},
                 timeout=10
             )
             resp.raise_for_status()
@@ -906,7 +1200,7 @@ class ImageManager:
                 log.info(f"  Pexels 이미지 확보: {img['photographer']}")
                 return {
                     "url": img["src"]["large2x"],
-                    "alt": keyword,
+                    "alt": query,
                     "credit": img["photographer"],
                     "link": img["photographer_url"],
                     "source": "Pexels"
@@ -915,14 +1209,40 @@ class ImageManager:
             log.warning(f"  Pexels 실패: {e}")
         return None
 
-    def _fetch_pixabay(self, keyword):
+    def _fetch_pexels_batch(self, query, count):
+        """Pexels에서 여러 장 가져오기 (중복 방지)"""
+        import requests
+        results = []
+        try:
+            resp = requests.get(
+                "https://api.pexels.com/v1/search",
+                headers={"Authorization": PEXELS_KEY},
+                params={"query": query, "per_page": max(count * 2, 8), "orientation": "landscape", "size": "large"},
+                timeout=10
+            )
+            resp.raise_for_status()
+            photos = resp.json().get("photos", [])
+            random.shuffle(photos)
+            for img in photos[:count]:
+                results.append({
+                    "url": img["src"]["large2x"],
+                    "alt": query,
+                    "credit": img["photographer"],
+                    "link": img["photographer_url"],
+                    "source": "Pexels"
+                })
+        except Exception as e:
+            log.warning(f"  Pexels batch 실패: {e}")
+        return results
+
+    def _fetch_pixabay(self, query):
         import requests
         try:
             log.info("  Pixabay 이미지 검색 중...")
             resp = requests.get(
                 "https://pixabay.com/api/",
                 params={
-                    "key": PIXABAY_KEY, "q": keyword, "per_page": 5,
+                    "key": PIXABAY_KEY, "q": query, "per_page": 5,
                     "orientation": "horizontal", "image_type": "photo",
                     "min_width": 1200, "safesearch": "true"
                 },
@@ -935,7 +1255,7 @@ class ImageManager:
                 log.info(f"  Pixabay 이미지 확보: {img.get('user', 'unknown')}")
                 return {
                     "url": img["largeImageURL"],
-                    "alt": keyword,
+                    "alt": query,
                     "credit": img.get("user", "Pixabay"),
                     "link": img.get("pageURL", "https://pixabay.com"),
                     "source": "Pixabay"
@@ -944,14 +1264,43 @@ class ImageManager:
             log.warning(f"  Pixabay 실패: {e}")
         return None
 
-    def _fetch_unsplash(self, keyword):
+    def _fetch_pixabay_batch(self, query, count):
+        """Pixabay에서 여러 장 가져오기"""
+        import requests
+        results = []
+        try:
+            resp = requests.get(
+                "https://pixabay.com/api/",
+                params={
+                    "key": PIXABAY_KEY, "q": query, "per_page": max(count * 2, 8),
+                    "orientation": "horizontal", "image_type": "photo",
+                    "min_width": 1200, "safesearch": "true"
+                },
+                timeout=10
+            )
+            resp.raise_for_status()
+            hits = resp.json().get("hits", [])
+            random.shuffle(hits)
+            for img in hits[:count]:
+                results.append({
+                    "url": img["largeImageURL"],
+                    "alt": query,
+                    "credit": img.get("user", "Pixabay"),
+                    "link": img.get("pageURL", "https://pixabay.com"),
+                    "source": "Pixabay"
+                })
+        except Exception as e:
+            log.warning(f"  Pixabay batch 실패: {e}")
+        return results
+
+    def _fetch_unsplash(self, query):
         import requests
         try:
             log.info("  Unsplash 이미지 검색 중 (백업)...")
             resp = requests.get(
                 "https://api.unsplash.com/search/photos",
                 headers={"Authorization": f"Client-ID {UNSPLASH_KEY}"},
-                params={"query": keyword, "per_page": 3, "orientation": "landscape"},
+                params={"query": query, "per_page": 3, "orientation": "landscape"},
                 timeout=10
             )
             resp.raise_for_status()
@@ -961,7 +1310,7 @@ class ImageManager:
                 log.info(f"  Unsplash 이미지 확보: {img['user']['name']}")
                 return {
                     "url": img["urls"]["regular"],
-                    "alt": img.get("alt_description", keyword),
+                    "alt": img.get("alt_description", query),
                     "credit": img["user"]["name"],
                     "link": img["user"]["links"]["html"],
                     "source": "Unsplash"
@@ -970,26 +1319,59 @@ class ImageManager:
             log.warning(f"  Unsplash 실패: {e}")
         return None
 
+    def _make_figure_html(self, image_data):
+        """이미지 데이터로 프리미엄 figure HTML 생성"""
+        source = image_data.get("source", "Unknown")
+        return (
+            f'<figure style="margin:32px 0">'
+            f'<img src="{image_data["url"]}" alt="{image_data["alt"]}" '
+            f'style="width:100%;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.12)" loading="lazy"/>'
+            f'<figcaption style="text-align:center;font-size:12px;color:#94a3b8;margin-top:10px;">'
+            f'Photo by <a href="{image_data["link"]}?utm_source=autoblog" target="_blank" '
+            f'style="color:#64748b;text-decoration:none">'
+            f'{image_data["credit"]}</a> on {source}</figcaption>'
+            f'</figure>'
+        )
+
     def insert_image(self, content, image_data):
         """콘텐츠 첫 번째 H2 앞에 이미지 삽입"""
         if not image_data:
             return content, False, ""
 
+        img_html = self._make_figure_html(image_data)
         source = image_data.get("source", "Unknown")
-        img_html = (
-            f'<figure style="margin:24px 0">'
-            f'<img src="{image_data["url"]}" alt="{image_data["alt"]}" '
-            f'style="width:100%;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1)" loading="lazy"/>'
-            f'<figcaption style="text-align:center;font-size:12px;color:#888;margin-top:8px;">'
-            f'Photo by <a href="{image_data["link"]}?utm_source=autoblog" target="_blank">'
-            f'{image_data["credit"]}</a> on {source}</figcaption>'
-            f'</figure>'
-        )
 
         if "<h2" in content:
             idx = content.index("<h2")
             return content[:idx] + img_html + content[idx:], True, source
         return img_html + content, True, source
+
+    def insert_multiple_images(self, content, images):
+        """여러 이미지를 H2 섹션 사이에 균등 분산 삽입"""
+        if not images:
+            return content, False, ""
+
+        h2_positions = [m.start() for m in re.finditer(r'<h2', content, re.IGNORECASE)]
+        if len(h2_positions) < 2:
+            # H2가 1개 이하면 첫 이미지만 삽입
+            return self.insert_image(content, images[0])
+
+        # 이미지를 H2 섹션 사이에 균등 분배
+        # 첫 번째 이미지: 첫 H2 앞, 나머지: H2 섹션 사이에 분산
+        interval = max(1, len(h2_positions) // (len(images)))
+        insert_positions = []
+        for i, img in enumerate(images):
+            h2_idx = min(i * interval, len(h2_positions) - 1)
+            insert_positions.append((h2_positions[h2_idx], img))
+
+        # 뒤에서부터 삽입 (앞에서 삽입하면 인덱스가 밀림)
+        insert_positions.sort(key=lambda x: x[0], reverse=True)
+        for pos, img in insert_positions:
+            img_html = self._make_figure_html(img)
+            content = content[:pos] + img_html + content[pos:]
+
+        sources = list({img.get("source", "Unknown") for img in images})
+        return content, True, "+".join(sources)
 
 
 # ═══════════════════════════════════════════════════════
@@ -1087,7 +1469,7 @@ class AdSenseOptimizer:
         return content
 
     def _generate_toc(self, content):
-        """H2 기반 간단 목차 생성"""
+        """H2 기반 프리미엄 목차 생성"""
         h2s = re.findall(r'<h2[^>]*>(.*?)</h2>', content, re.IGNORECASE)
         if len(h2s) < 4:
             return ""
@@ -1095,14 +1477,22 @@ class AdSenseOptimizer:
         items = ""
         for i, h2 in enumerate(h2s, 1):
             clean = re.sub(r'<[^>]+>', '', h2).strip()
-            items += f'<li style="margin:4px 0"><a href="#section-{i}" style="color:#4a5568;text-decoration:none">{clean}</a></li>'
+            items += (
+                f'<li style="margin:6px 0;padding:6px 12px;border-radius:8px;'
+                f'transition:background 0.2s">'
+                f'<a href="#section-{i}" style="color:#4338ca;text-decoration:none;'
+                f'font-size:14px;font-weight:500;display:block">{clean}</a></li>'
+            )
 
         return (
-            f'<div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;'
-            f'padding:16px 20px;margin:20px 0">'
-            f'<p style="font-weight:700;font-size:14px;margin:0 0 8px;color:#1a1a2e">목차</p>'
-            f'<ol style="margin:0;padding-left:20px;color:#4a5568;font-size:13px">{items}</ol>'
-            f'</div>\n'
+            f'<div style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);'
+            f'border:1px solid #c4b5fd;border-radius:16px;'
+            f'padding:20px 24px;margin:24px 0;box-shadow:0 2px 8px rgba(99,102,241,0.08)">'
+            f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'
+            f'<span style="font-size:18px">\U0001f4d1</span>'
+            f'<span style="font-weight:800;font-size:15px;color:#1a1a2e">이 글의 순서</span></div>'
+            f'<ol style="margin:0;padding-left:24px;color:#4a5568;list-style:none;counter-reset:toc-counter">'
+            f'{items}</ol></div>\n'
         )
 
 
@@ -1637,7 +2027,7 @@ import re as _re
 
 
 class ContentFormatter:
-    """AI 폴리싱 없이 Python으로 HTML 스타일링 + AI 표현 치환"""
+    """프리미엄 비주얼 스타일링 엔진 — 12종 콘텐츠 블록 + AI 표현 치환"""
 
     # AI 특유 표현 -> 자연스러운 대체어 매핑
     AI_REPLACEMENTS = [
@@ -1655,36 +2045,232 @@ class ContentFormatter:
         ("시작하겠습니다", "시작해볼게요"),
     ]
 
+    # ── 프리미엄 스타일 정의 ──
+
     H2_STYLE = (
-        'style="font-size:22px;font-weight:800;color:#1a1a1a;'
-        'margin:40px 0 16px;padding-bottom:12px;border-bottom:3px solid #1a73e8"'
+        'style="font-size:23px;font-weight:800;color:#1a1a2e;'
+        'margin:48px 0 20px;padding:16px 0 12px;'
+        'border-bottom:3px solid transparent;'
+        'background-image:linear-gradient(#fff,#fff),linear-gradient(135deg,#6366f1,#3b82f6);'
+        'background-origin:padding-box,border-box;background-clip:padding-box,border-box;'
+        'border-bottom:3px solid #6366f1"'
     )
 
-    P_STYLE = 'style="line-height:1.9;color:#333;margin:16px 0;font-size:16px"'
+    H3_STYLE = (
+        'style="font-size:18px;font-weight:700;color:#334155;'
+        'margin:28px 0 12px;padding-left:12px;'
+        'border-left:4px solid #6366f1"'
+    )
 
+    P_STYLE = 'style="line-height:1.95;color:#374151;margin:18px 0;font-size:16.5px;word-break:keep-all"'
+
+    # 팁 박스: 밝은 파란 배경 + 전구 아이콘
+    TIP_BOX_STYLE = (
+        'style="background:linear-gradient(135deg,#eff6ff,#dbeafe);'
+        'border:1px solid #93c5fd;border-radius:12px;padding:20px 24px;margin:28px 0;'
+        'position:relative;overflow:hidden"'
+    )
+    TIP_BOX_LABEL = (
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
+        '<span style="font-size:20px">\U0001f4a1</span>'
+        '<span style="font-weight:700;color:#1d4ed8;font-size:14px;letter-spacing:0.5px">'
+        '\uc2e4\uc6a9 \ud301</span></div>'
+    )
+
+    # 핵심 포인트: 보라색 좌측 보더 + 밝은 배경
+    KEY_POINT_STYLE = (
+        'style="background:#f5f3ff;border-left:4px solid #6366f1;'
+        'border-radius:0 12px 12px 0;padding:18px 24px;margin:28px 0"'
+    )
+    KEY_POINT_LABEL = (
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+        '<span style="font-size:18px">\U0001f3af</span>'
+        '<span style="font-weight:700;color:#6366f1;font-size:14px;letter-spacing:0.5px">'
+        '\ud575\uc2ec \ud3ec\uc778\ud2b8</span></div>'
+    )
+
+    # 인용구 (blockquote): 도파민 트리거 디자인
+    BLOCKQUOTE_STYLE = (
+        'style="background:linear-gradient(135deg,#fefce8,#fef9c3);'
+        'border-left:4px solid #eab308;border-radius:0 12px 12px 0;'
+        'padding:20px 24px;margin:28px 0;font-style:normal;color:#92400e"'
+    )
+    BLOCKQUOTE_LABEL = (
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
+        '<span style="font-size:18px">\u2728</span>'
+        '<span style="font-weight:700;color:#92400e;font-size:14px;letter-spacing:0.5px">'
+        '\ub180\ub77c\uc6b4 \uc0ac\uc2e4</span></div>'
+    )
+
+    # 테이블 스타일
+    TABLE_STYLE = (
+        'style="width:100%;border-collapse:separate;border-spacing:0;'
+        'border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);'
+        'margin:28px 0;font-size:15px"'
+    )
+    THEAD_STYLE = 'style="background:linear-gradient(135deg,#6366f1,#818cf8)"'
+    TH_STYLE = 'style="padding:14px 16px;color:#fff;font-weight:700;text-align:left;font-size:14px"'
+    TD_STYLE = 'style="padding:12px 16px;border-bottom:1px solid #e2e8f0;color:#374151"'
+    TD_ALT_STYLE = 'style="padding:12px 16px;border-bottom:1px solid #e2e8f0;color:#374151;background:#f8fafc"'
+
+    # 리스트 스타일
+    UL_STYLE = 'style="margin:16px 0;padding-left:0;list-style:none"'
+    LI_STYLE = (
+        'style="padding:8px 0 8px 28px;position:relative;line-height:1.8;color:#374151;font-size:15.5px"'
+    )
+    LI_BULLET = (
+        'style="position:absolute;left:0;top:10px;width:18px;height:18px;'
+        'background:linear-gradient(135deg,#6366f1,#818cf8);border-radius:50%;'
+        'display:inline-flex;align-items:center;justify-content:center;'
+        'color:#fff;font-size:10px;font-weight:700"'
+    )
+
+    OL_STYLE = 'style="margin:16px 0;padding-left:0;list-style:none;counter-reset:ol-counter"'
+    OL_LI_STYLE = (
+        'style="padding:10px 0 10px 40px;position:relative;line-height:1.8;'
+        'color:#374151;font-size:15.5px;counter-increment:ol-counter"'
+    )
+
+    # CTA 박스: 그라디언트 + 아이콘
     CTA_BOX = (
-        '\n<div style="background:linear-gradient(135deg,#1a73e8,#4285f4);'
-        'border-radius:12px;padding:24px 28px;margin:32px 0;text-align:center">\n'
-        '<p style="color:#fff;font-size:18px;font-weight:700;margin:0 0 8px">'
-        '\U0001f680 지금 바로 확인해보세요</p>\n'
-        '<p style="color:rgba(255,255,255,0.9);margin:0;font-size:15px">'
-        '위 내용을 참고해서 나에게 맞는 선택을 해보세요</p>\n'
+        '\n<div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);'
+        'border-radius:16px;padding:28px 32px;margin:40px 0;text-align:center;'
+        'box-shadow:0 8px 32px rgba(99,102,241,0.25)">\n'
+        '<p style="color:#fff;font-size:20px;font-weight:800;margin:0 0 10px">'
+        '\U0001f680 \uc9c0\uae08 \ubc14\ub85c \ud655\uc778\ud574\ubcf4\uc138\uc694</p>\n'
+        '<p style="color:rgba(255,255,255,0.9);margin:0;font-size:15px;line-height:1.6">'
+        '\uc704 \ub0b4\uc6a9\uc744 \ucc38\uace0\ud574\uc11c \ub098\uc5d0\uac8c \ub9de\ub294 \uc120\ud0dd\uc744 \ud574\ubcf4\uc138\uc694</p>\n'
         '</div>\n'
     )
 
-    def format(self, content, keyword=""):
-        """콘텐츠 후처리 파이프라인"""
+    # 구분선
+    SECTION_DIVIDER = (
+        '<div style="text-align:center;margin:40px 0;color:#cbd5e1;font-size:20px;letter-spacing:12px">'
+        '\u00b7\u00b7\u00b7</div>'
+    )
+
+    def format(self, content, keyword="", category=""):
+        """프리미엄 콘텐츠 후처리 파이프라인 (니치별 색상 분기)"""
         original_len = len(content)
 
+        # 니치 색상 오버라이드
+        self._apply_niche_colors(category)
+
         content = self._replace_ai_expressions(content)
+        content = self._style_tip_box(content)
+        content = self._style_key_point(content)
+        content = self._style_blockquote(content)
+        content = self._style_table(content)
+        content = self._style_lists(content)
         content = self._style_h2(content)
+        content = self._style_h3(content)
         content = self._style_p(content)
+        content = self._style_strong(content)
         content = self._ensure_cta(content)
         content = self._clean_empty_tags(content)
 
+        style, group = get_niche_style(category) if category else (NICHE_STYLES["product"], "product")
         changes = len(content) - original_len
-        log.info(f"   H2 스타일링, p 스타일링, AI 표현 치환, 구조 검증 완료 ({changes:+d}자)")
+        log.info(f"   프리미엄 스타일링 완료: [{style['label']}] 12종 블록 ({changes:+d}자)")
         return content
+
+    def _apply_niche_colors(self, category):
+        """니치별 액센트 색상으로 스타일 변수 동적 교체"""
+        if not category:
+            return
+
+        style, group = get_niche_style(category)
+        accent = style["accent"]
+        accent_light = style["accent_light"]
+        gradient = style["accent_gradient"]
+
+        # H2: 그라디언트 언더라인 색상
+        self.H2_STYLE = (
+            f'style="font-size:23px;font-weight:800;color:#1a1a2e;'
+            f'margin:48px 0 20px;padding:16px 0 12px;'
+            f'border-bottom:3px solid {accent}"'
+        )
+
+        # H3: 좌측 보더 색상
+        self.H3_STYLE = (
+            f'style="font-size:18px;font-weight:700;color:#334155;'
+            f'margin:28px 0 12px;padding-left:12px;'
+            f'border-left:4px solid {accent}"'
+        )
+
+        # 테이블 헤더
+        self.THEAD_STYLE = f'style="background:{gradient}"'
+
+        # CTA 그라디언트
+        self.CTA_BOX = (
+            f'\n<div style="background:{gradient};'
+            f'border-radius:16px;padding:28px 32px;margin:40px 0;text-align:center;'
+            f'box-shadow:0 8px 32px {accent}40">\n'
+            f'<p style="color:#fff;font-size:20px;font-weight:800;margin:0 0 10px">'
+            f'\U0001f680 \uc9c0\uae08 \ubc14\ub85c \ud655\uc778\ud574\ubcf4\uc138\uc694</p>\n'
+            f'<p style="color:rgba(255,255,255,0.9);margin:0;font-size:15px;line-height:1.6">'
+            f'\uc704 \ub0b4\uc6a9\uc744 \ucc38\uace0\ud574\uc11c \ub098\uc5d0\uac8c \ub9de\ub294 \uc120\ud0dd\uc744 \ud574\ubcf4\uc138\uc694</p>\n'
+            f'</div>\n'
+        )
+
+        # strong 하이라이트 색상
+        self._strong_bg = f"{accent_light}"
+
+        # 뉴스 그룹: blockquote를 빨간 톤으로
+        if group == "news":
+            self.BLOCKQUOTE_STYLE = (
+                'style="background:linear-gradient(135deg,#fef2f2,#fee2e2);'
+                'border-left:4px solid #dc2626;border-radius:0 12px 12px 0;'
+                'padding:20px 24px;margin:28px 0;font-style:normal;color:#991b1b"'
+            )
+            self.BLOCKQUOTE_LABEL = (
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
+                '<span style="font-size:18px">\U0001f4e2</span>'
+                '<span style="font-weight:700;color:#991b1b;font-size:14px;letter-spacing:0.5px">'
+                '\ud575\uc2ec \ud329\ud2b8</span></div>'
+            )
+
+        # 섹터 그룹: blockquote를 시안 톤으로 + 전문가 분석 라벨
+        elif group == "sector":
+            self.BLOCKQUOTE_STYLE = (
+                'style="background:linear-gradient(135deg,#ecfeff,#cffafe);'
+                'border-left:4px solid #0891b2;border-radius:0 12px 12px 0;'
+                'padding:20px 24px;margin:28px 0;font-style:normal;color:#155e75"'
+            )
+            self.BLOCKQUOTE_LABEL = (
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
+                '<span style="font-size:18px">\U0001f4ca</span>'
+                '<span style="font-weight:700;color:#155e75;font-size:14px;letter-spacing:0.5px">'
+                '\uc804\ubb38\uac00 \ubd84\uc11d</span></div>'
+            )
+
+        # 정보 서비스: blockquote를 녹색 톤으로 + 알림 라벨
+        elif group == "info":
+            self.BLOCKQUOTE_STYLE = (
+                'style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);'
+                'border-left:4px solid #059669;border-radius:0 12px 12px 0;'
+                'padding:20px 24px;margin:28px 0;font-style:normal;color:#065f46"'
+            )
+            self.BLOCKQUOTE_LABEL = (
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
+                '<span style="font-size:18px">\u2705</span>'
+                '<span style="font-weight:700;color:#065f46;font-size:14px;letter-spacing:0.5px">'
+                '\uc54c\uc544\ub450\uba74 \uc720\ub9ac\ud55c \uc815\ubcf4</span></div>'
+            )
+
+        # 홍보: blockquote를 핑크 톤으로
+        elif group == "promo":
+            self.BLOCKQUOTE_STYLE = (
+                'style="background:linear-gradient(135deg,#fdf4ff,#fae8ff);'
+                'border-left:4px solid #d946ef;border-radius:0 12px 12px 0;'
+                'padding:20px 24px;margin:28px 0;font-style:normal;color:#86198f"'
+            )
+            self.BLOCKQUOTE_LABEL = (
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
+                '<span style="font-size:18px">\U0001f4ac</span>'
+                '<span style="font-weight:700;color:#86198f;font-size:14px;letter-spacing:0.5px">'
+                '\uc2e4\uc0ac\uc6a9\uc790 \ud6c4\uae30</span></div>'
+            )
 
     def _replace_ai_expressions(self, content):
         """AI 특유 표현을 자연스러운 구어체로 치환"""
@@ -1697,6 +2283,97 @@ class ContentFormatter:
             log.info(f"   AI 표현 {count}개 치환")
         return content
 
+    def _style_tip_box(self, content):
+        """<div class="tip-box"> → 프리미엄 팁 박스"""
+        def _replace_tip(m):
+            inner = m.group(1).strip()
+            # 내부 p 태그의 스타일 적용
+            inner = _re.sub(r'<p[^>]*>', f'<p style="margin:0;line-height:1.7;color:#1e40af;font-size:15px">', inner)
+            return (
+                f'<div {self.TIP_BOX_STYLE}>'
+                f'{self.TIP_BOX_LABEL}'
+                f'{inner}</div>'
+            )
+        return _re.sub(
+            r'<div\s+class="tip-box"[^>]*>(.*?)</div>',
+            _replace_tip, content, flags=_re.DOTALL | _re.IGNORECASE
+        )
+
+    def _style_key_point(self, content):
+        """<div class="key-point"> → 프리미엄 핵심 포인트 박스"""
+        def _replace_kp(m):
+            inner = m.group(1).strip()
+            inner = _re.sub(r'<p[^>]*>', f'<p style="margin:0;line-height:1.7;color:#4338ca;font-size:15px;font-weight:600">', inner)
+            return (
+                f'<div {self.KEY_POINT_STYLE}>'
+                f'{self.KEY_POINT_LABEL}'
+                f'{inner}</div>'
+            )
+        return _re.sub(
+            r'<div\s+class="key-point"[^>]*>(.*?)</div>',
+            _replace_kp, content, flags=_re.DOTALL | _re.IGNORECASE
+        )
+
+    def _style_blockquote(self, content):
+        """<blockquote> → 도파민 트리거 인용구"""
+        def _replace_bq(m):
+            inner = m.group(1).strip()
+            inner = _re.sub(r'<p[^>]*>', f'<p style="margin:0 0 8px;line-height:1.7;color:#92400e;font-size:15.5px;font-weight:500">', inner)
+            return (
+                f'<blockquote {self.BLOCKQUOTE_STYLE}>'
+                f'{self.BLOCKQUOTE_LABEL}'
+                f'{inner}</blockquote>'
+            )
+        return _re.sub(
+            r'<blockquote[^>]*>(.*?)</blockquote>',
+            _replace_bq, content, flags=_re.DOTALL | _re.IGNORECASE
+        )
+
+    def _style_table(self, content):
+        """테이블에 프리미엄 스타일 적용"""
+        # 테이블 전체 스타일
+        content = _re.sub(r'<table[^>]*>', f'<table {self.TABLE_STYLE}>', content, flags=_re.IGNORECASE)
+        content = _re.sub(r'<thead[^>]*>', f'<thead {self.THEAD_STYLE}>', content, flags=_re.IGNORECASE)
+
+        # th 스타일
+        content = _re.sub(r'<th[^>]*>', f'<th {self.TH_STYLE}>', content, flags=_re.IGNORECASE)
+
+        # td 스타일 (교대 행 색상은 CSS로 처리 어려워 기본 스타일만)
+        content = _re.sub(r'<td[^>]*>', f'<td {self.TD_STYLE}>', content, flags=_re.IGNORECASE)
+
+        # tbody가 없으면 thead 다음에 추가
+        if '<thead' in content and '<tbody' not in content:
+            content = content.replace('</thead>', '</thead><tbody>')
+            content = content.replace('</table>', '</tbody></table>')
+
+        return content
+
+    def _style_lists(self, content):
+        """ul/ol 리스트에 프리미엄 스타일 적용"""
+        # ul 스타일 (팁박스/키포인트 내부의 ul은 제외)
+        content = _re.sub(
+            r'<ul(?:\s[^>]*)?>(?!\s*</)',
+            f'<ul {self.UL_STYLE}>',
+            content, flags=_re.IGNORECASE
+        )
+
+        # ol 스타일
+        content = _re.sub(
+            r'<ol(?:\s[^>]*)?>(?!\s*</)',
+            f'<ol {self.OL_STYLE}>',
+            content, flags=_re.IGNORECASE
+        )
+
+        # li에 커스텀 불릿 스타일 (ul 내부만 — 간단하게 전체 li에 패딩 적용)
+        def _replace_li(m):
+            tag = m.group(0)
+            if 'style=' in tag:
+                return tag
+            return tag.replace('<li', f'<li {self.LI_STYLE}', 1)
+        content = _re.sub(r'<li[^>]*>', _replace_li, content, flags=_re.IGNORECASE)
+
+        return content
+
     def _style_h2(self, content):
         """스타일 없는 H2에 프리미엄 스타일 적용"""
         def _replace_h2(m):
@@ -1707,6 +2384,16 @@ class ContentFormatter:
 
         return _re.sub(r'<h2[^>]*>', _replace_h2, content, flags=_re.IGNORECASE)
 
+    def _style_h3(self, content):
+        """스타일 없는 H3에 스타일 적용"""
+        def _replace_h3(m):
+            tag = m.group(0)
+            if 'style=' in tag:
+                return tag
+            return tag.replace('<h3', f'<h3 {self.H3_STYLE}', 1)
+
+        return _re.sub(r'<h3[^>]*>', _replace_h3, content, flags=_re.IGNORECASE)
+
     def _style_p(self, content):
         """스타일 없는 p에 기본 스타일 적용"""
         def _replace_p(m):
@@ -1716,6 +2403,16 @@ class ContentFormatter:
             return tag.replace('<p', f'<p {self.P_STYLE}', 1)
 
         return _re.sub(r'<p(?:\s[^>]*)?>',  _replace_p, content, flags=_re.IGNORECASE)
+
+    def _style_strong(self, content):
+        """<strong> 태그에 니치별 하이라이트 색상"""
+        bg = getattr(self, '_strong_bg', '#c7d2fe')
+        def _replace_strong(m):
+            tag = m.group(0)
+            if 'style=' in tag:
+                return tag
+            return f'<strong style="color:#1a1a2e;background:linear-gradient(transparent 60%,{bg} 60%)">'
+        return _re.sub(r'<strong[^>]*>', _replace_strong, content, flags=_re.IGNORECASE)
 
     def _ensure_cta(self, content):
         """마무리에 CTA 박스가 없으면 추가"""
@@ -1952,18 +2649,25 @@ def run_pipeline(count=5, dry_run=False, pipeline="autoblog", site_override=None
         log.info(f"글 생성 완료 ({content_length}자)")
 
         # Step 1.5: Python 후처리 (스타일링 + AI 표현 치환)
-        content = cf.format(content, keyword=keyword)
+        content = cf.format(content, keyword=keyword, category=category)
         content_length = len(content)
 
         # Step 2: 제목 추출
         title, content = extract_title(content)
         log.info(f"제목: {title}")
 
-        # Step 3: 이미지 삽입 (3중 폴백)
-        img_data = im.fetch_image(keyword)
-        content, has_image, image_source = im.insert_image(content, img_data)
-        if has_image:
-            log.info(f"이미지 삽입 완료 [{image_source}]")
+        # Step 3: 다중 이미지 삽입 (2~3장 분산)
+        images = im.fetch_multiple(keyword, count=3)
+        if images:
+            content, has_image, image_source = im.insert_multiple_images(content, images)
+            img_data = images[0]  # 품질 재검증용 (기존 호환)
+            log.info(f"이미지 {len(images)}장 분산 삽입 [{image_source}]")
+        else:
+            # 폴백: 단일 이미지라도 시도
+            img_data = im.fetch_image(keyword)
+            content, has_image, image_source = im.insert_image(content, img_data)
+            if has_image:
+                log.info(f"이미지 1장 삽입 [{image_source}]")
 
         # Step 4: 제휴 링크 삽입
         has_coupang = False
@@ -1978,23 +2682,26 @@ def run_pipeline(count=5, dry_run=False, pipeline="autoblog", site_override=None
         content = ao.optimize(content)
         log.info("AdSense HTML 최적화 완료")
 
-        # Step 6: 품질 검증 (AdSense 모드: 85점, 일반: 70점)
-        min_score = 85 if effective_adsense else qg.MIN_SCORE
+        # Step 6: 품질 검증 (통합 85점 기준)
+        min_score = qg.MIN_SCORE  # 85점
         passed, quality_score, q_details = qg.validate(content, keyword, has_image)
         passed = quality_score >= min_score
 
-        # AdSense 모드: 미달 시 최대 2회 재생성
-        if not passed and effective_adsense:
+        # 미달 시 최대 2회 재생성 (모든 모드)
+        if not passed:
             for retry in range(2):
-                log.info(f"  AdSense 모드 재생성 ({retry+1}/2) — {quality_score}점 < {min_score}점")
+                log.info(f"  품질 재생성 ({retry+1}/2) — {quality_score}점 < {min_score}점")
                 content2, cost2, len2 = cg.generate(
                     keyword, intent, category, "",
-                    lang=effective_lang, adsense_mode=True,
+                    lang=effective_lang, adsense_mode=effective_adsense,
                     preferred_draft=effective_draft_model, preferred_polish=effective_polish_model
                 )
                 if content2:
+                    content2 = cf.format(content2, keyword=keyword)
                     title2, content2 = extract_title(content2)
-                    if img_data:
+                    if images:
+                        content2, _, _ = im.insert_multiple_images(content2, images)
+                    elif img_data:
                         content2, _, _ = im.insert_image(content2, img_data)
                     content2 = ao.optimize(content2)
                     _, qs2, _ = qg.validate(content2, keyword, has_image)
@@ -2008,7 +2715,7 @@ def run_pipeline(count=5, dry_run=False, pipeline="autoblog", site_override=None
                     quality_score = max(quality_score, qs2)
 
         if not passed:
-            log.warning(f"품질 {'미달' if not effective_adsense else '미달(재생성 실패)'} ({quality_score}/{min_score}) — 발행 진행")
+            log.warning(f"품질 미달 ({quality_score}/{min_score}) — 발행 진행")
             sb.log_alert(
                 f"품질 미달: {keyword}",
                 f"점수 {quality_score}/{min_score}. 항목: {json.dumps(q_details, ensure_ascii=False)[:300]}",
