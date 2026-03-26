@@ -1,0 +1,61 @@
+name: ETF Daily Report
+
+on:
+  schedule:
+    # 매일 장 마감 후 KST 16:30 (UTC 07:30)
+    - cron: '30 7 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      report_type:
+        description: '리포트 유형 (daily/rotation/performance/blog-ready)'
+        required: false
+        default: 'blog-ready'
+      dry_run:
+        description: '드라이런 (true/false)'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: read
+
+jobs:
+  etf-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      ETF_API_URL: ${{ secrets.ETF_API_URL }}
+      WP_URL: ${{ secrets.WP_URL }}
+      WP_USERNAME: ${{ secrets.WP_USERNAME }}
+      WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+      GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      SITE_ID: site-1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run ETF Report Pipeline
+        run: |
+          REPORT_TYPE="${{ github.event.inputs.report_type || 'blog-ready' }}"
+          DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
+
+          ARGS="--report-type $REPORT_TYPE"
+          if [ "$DRY_RUN" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+
+          python scripts/etf_report.py $ARGS

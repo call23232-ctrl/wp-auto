@@ -3224,6 +3224,12 @@ def main():
         log.error("AI API 키가 하나도 없음 (DEEPSEEK/GROK/GEMINI 중 1개 필요)")
         sys.exit(1)
 
+    # ETF 리포트 파이프라인 (별도 모듈로 위임)
+    if args.pipeline == "etf-report":
+        from etf_report import run_etf_report
+        run_etf_report(report_type="blog-ready", dry_run=args.dry_run)
+        return
+
     # 멀티사이트 모드
     if args.all_sites:
         run_all_sites(count=args.count, dry_run=args.dry_run, pipeline=args.pipeline,
