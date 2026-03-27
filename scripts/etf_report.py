@@ -83,6 +83,106 @@ def fetch_etf_report(report_type: str = "blog-ready") -> dict:
 # ═══════════════════════════════════════════════════════
 
 import random as _random
+import re as _re
+
+
+# ═══════════════════════════════════════════════════════
+# 2-A. 인라인 SVG 차트 생성
+# ═══════════════════════════════════════════════════════
+
+def _build_sector_chart_svg(rankings: list) -> str:
+    """섹터 등락률 수평 바 차트 (인라인 SVG, 상위 10개)"""
+    top = rankings[:10]
+    if not top:
+        return ""
+
+    bar_h = 32
+    gap = 6
+    label_w = 100
+    chart_w = 560
+    bar_area = chart_w - label_w - 80
+    total_h = len(top) * (bar_h + gap) + 40
+
+    max_abs = max(abs(r.get("change_rate", 0)) for r in top) or 1
+
+    rows = []
+    for i, r in enumerate(top):
+        y = i * (bar_h + gap) + 30
+        rate = r.get("change_rate", 0)
+        sector = r.get("sector", "")[:6]
+        grade = r.get("grade", "")
+        is_leading = r.get("is_leading", False)
+
+        bar_len = abs(rate) / max_abs * (bar_area / 2)
+        center_x = label_w + bar_area / 2
+
+        color = "#16a34a" if rate >= 0 else "#dc2626"
+        bar_x = center_x if rate >= 0 else center_x - bar_len
+        badge_color = "#f59e0b" if is_leading else "#94a3b8"
+
+        rows.append(
+            f'<rect x="{bar_x:.0f}" y="{y}" width="{bar_len:.0f}" height="{bar_h - 4}" '
+            f'rx="4" fill="{color}" opacity="0.85"/>'
+            f'<text x="{label_w - 8}" y="{y + bar_h / 2 + 1}" '
+            f'text-anchor="end" font-size="13" font-weight="600" fill="#1e293b">{sector}</text>'
+            f'<text x="{label_w - 8}" y="{y + bar_h / 2 + 14}" '
+            f'text-anchor="end" font-size="9" fill="{badge_color}" font-weight="700">{grade}</text>'
+            f'<text x="{center_x + (bar_len + 6 if rate >= 0 else -bar_len - 6):.0f}" y="{y + bar_h / 2 + 1}" '
+            f'text-anchor="{"start" if rate >= 0 else "end"}" '
+            f'font-size="12" font-weight="700" fill="{color}">{rate:+.2f}%</text>'
+        )
+
+    # 중앙 기준선
+    center_x = label_w + bar_area / 2
+    center_line = (
+        f'<line x1="{center_x:.0f}" y1="25" x2="{center_x:.0f}" y2="{total_h - 5}" '
+        f'stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4,3"/>'
+        f'<text x="{center_x:.0f}" y="18" text-anchor="middle" font-size="10" fill="#94a3b8">0%</text>'
+    )
+
+    svg = (
+        f'<div style="margin:28px 0;overflow-x:auto">'
+        f'<svg viewBox="0 0 {chart_w} {total_h}" '
+        f'style="width:100%;max-width:{chart_w}px;font-family:sans-serif">'
+        f'{center_line}'
+        f'{"".join(rows)}'
+        f'</svg></div>'
+    )
+    return svg
+
+
+def _build_signal_badge_html(signals: dict) -> str:
+    """매수/매도/관망 신호 뱃지 HTML"""
+    buy = signals.get("buy", 0) + signals.get("strong_buy", 0)
+    sell = signals.get("sell", 0)
+    hold = signals.get("hold", 0)
+    details = signals.get("details", [])
+
+    badges = (
+        f'<div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0">'
+        f'<span style="background:#dcfce7;color:#166534;padding:8px 16px;border-radius:20px;'
+        f'font-weight:700;font-size:14px">매수 {buy}건</span>'
+        f'<span style="background:#fee2e2;color:#991b1b;padding:8px 16px;border-radius:20px;'
+        f'font-weight:700;font-size:14px">매도 {sell}건</span>'
+        f'<span style="background:#f1f5f9;color:#475569;padding:8px 16px;border-radius:20px;'
+        f'font-weight:700;font-size:14px">관망 {hold}건</span>'
+        f'</div>'
+    )
+
+    if details:
+        detail_items = ""
+        for d in details[:5]:
+            sig_color = "#16a34a" if "매수" in d.get("signal", "") else "#dc2626"
+            detail_items += (
+                f'<li style="padding:6px 0;font-size:14px;color:#374151;border-bottom:1px solid #f1f5f9">'
+                f'<strong>{d["etf_name"]}</strong> '
+                f'<span style="color:{sig_color};font-weight:700">{d["signal"]}</span> '
+                f'<span style="color:#94a3b8;font-size:12px">(신뢰도 {d["confidence"]}%)</span></li>'
+            )
+        badges += f'<ul style="list-style:none;padding:0;margin:12px 0">{detail_items}</ul>'
+
+    return badges
+
 
 # 분석 앵글 3종 — 매일 순환
 ANALYSIS_ANGLES = [
@@ -205,99 +305,110 @@ def build_etf_blog_prompt(report: dict) -> str:
             f"누적 {p['cumulative_return_pct']:+.2f}%, {p['consecutive_days']}일째\n"
         )
 
-    prompt = f"""# Role & Persona (역할 및 페르소나)
-당신은 데이터를 기반으로 시장의 이면을 꿰뚫어 보는 상위 0.1% 퀀트 애널리스트이자 산업 분석 전문가입니다.
-당신의 어조는 단호하고 냉철하며(~하십시오, ~입니다), 독자에게 압도적인 통찰력을 제공해야 합니다.
-* 절대 과거 데이터의 단순 평균치를 내거나 위키백과식으로 정보를 나열하지 마십시오.
-* 화자의 정체성은 항상 '냉철한 데이터 분석가'로 고정하되, 글의 초점은 [{payload['angle']}]에 맞춰 전개하십시오.
+    # 시장 지수 요약 (프롬프트 내 삽입용)
+    kospi = market.get('kospi', {})
+    kosdaq = market.get('kosdaq', {})
+    market_summary = (
+        f"KOSPI {kospi.get('price', 0):,.0f} ({kospi.get('change_rate', 0):+.2f}%) / "
+        f"KOSDAQ {kosdaq.get('price', 0):,.0f} ({kosdaq.get('change_rate', 0):+.2f}%)"
+    )
 
-# Input Data Payload (실시간 주입 데이터 — {today})
-- 당일 주도 섹터: {payload['top_sector']}
-- 타겟 핵심 종목: {payload['target_stock']}
-- 주요 이슈: {payload['briefing']}
-- 수급 동향: {payload['supply_text']}
-- 오늘의 분석 앵글: {payload['angle']}
+    prompt = f"""# Role & Persona
+당신은 데이터를 기반으로 시장의 이면을 꿰뚫어 보는 상위 0.1% 퀀트 애널리스트입니다.
+어조: 단호하고 냉철하며 (~하십시오, ~입니다), 압도적인 통찰력 제공.
+* 위키백과식 정보 나열 금지. 모든 문장에 '그래서 투자자가 뭘 해야 하는지'를 녹이십시오.
+* 분석 앵글: [{payload['angle']}]
 
-# Raw Market Data (원본 데이터)
-### 시장 지수
-  KOSPI: {market.get('kospi', {}).get('price', 0):,.0f} ({market.get('kospi', {}).get('change_rate', 0):+.2f}%)
-  KOSDAQ: {market.get('kosdaq', {}).get('price', 0):,.0f} ({market.get('kosdaq', {}).get('change_rate', 0):+.2f}%)
+# 구독자가 원하는 핵심 3가지 (반드시 전달)
+1. **오늘 돈이 몰리는 곳은 어디인가?** → 주도섹터 + 매수신호 종목
+2. **왜 그 곳에 돈이 몰리는가?** → 병목/수급/모멘텀 근거
+3. **나는 지금 뭘 해야 하는가?** → 구체적 액션 (매수/관망/비중조절)
 
-### 섹터 순위 (전체)
+# 실시간 데이터 ({today})
+시장: {market_summary}
+주도섹터: {payload['top_sector']}
+핵심종목: {payload['target_stock']}
+수급: {payload['supply_text']}
+이슈: {payload['briefing']}
+
+### 섹터 순위 TOP10
 {ranking_text}
 
-### 주도섹터 TOP3
+### 주도섹터
 {leading_text}
 
-### 종합 신호 분포
+### 신호 분포
 {signal_text}
 
-### 오늘의 특징주
+### 특징주
 {featured_text}
 
-### 섹터 순환 분석 (최근 90일)
+### 순환 분석 (90일)
 {rotation_text}
 
-### TOP3 수익률 추적
+### 수익률 추적
 {perf_text}
 
-# Core Analysis Logic (핵심 분석 지시사항)
-주입된 데이터를 바탕으로 다음의 논리적 흐름에 따라 분석을 수행하십시오.
+# Output Structure (HTML — 100% 준수, 번호 순서대로)
 
-1. 병목 요소와 가격 결정권 (Moat & Pricing Power):
-   - 해당 산업 밸류체인 내에서 가장 치명적인 '병목(Bottleneck) 분야'가 무엇인지 정의하십시오.
-   - 타겟 종목({payload['target_stock']})이 이 병목을 쥐고 흔들 수 있는 '가격 결정권'이 있는지 분석하십시오.
-   - 가격 결정권이 영업이익률(OPM)의 폭발적 증가로 이어질 가능성이 크다면, 이를 강력하게 어필하십시오.
+<h2>[{today}] [주도섹터와 핵심종목을 포함한 강렬한 제목]</h2>
 
-2. 멀티팩터 모멘텀 스코어링 (Multi-factor Scoring):
-   - [단기 모멘텀 점수]: 주입된 '이슈'와 '수급' 데이터를 중심으로 평가 (1~10점 산정 및 이유 서술).
-   - [중기 모멘텀 점수]: 산업의 구조적 성장성, 기술적 해자(Technical Moat), 주요 경쟁사와의 스펙/점유율 비교를 통한 우위 관점에서 평가 (1~10점 산정 및 이유 서술).
+<div class="key-point"><strong>30초 핵심 요약</strong><br/>
+<ul>
+<li><strong>오늘의 주도섹터:</strong> [섹터명] — [등급] 등급, [등락률]%</li>
+<li><strong>핵심 매수 신호:</strong> [ETF명] (신뢰도 [X]%)</li>
+<li><strong>액션:</strong> [구체적 1줄 행동 지침]</li>
+</ul></div>
 
-# Output Structure (출력 포맷 — HTML, 100% 준수)
-반드시 HTML 형식으로 다음 구조를 순서대로 출력하십시오.
+<p>(도입부 — 오늘 시장에서 가장 중요한 움직임 1가지를 팩트로 훅. KOSPI/KOSDAQ 지수 포함. 3~4문장.)</p>
 
-<h2>[{today}] [주도 섹터/종목에 대한 통찰을 담은 도발적인 제목]</h2>
+<h2>1. 오늘 돈은 어디로 흘러갔는가?</h2>
+<p>(주도섹터 분석. 왜 이 섹터가 강세인지 수급 근거와 등급 기반으로 서술. 400~500자.)</p>
+<table>
+<thead><tr><th style="width:25%">섹터</th><th style="width:15%">등급</th><th style="width:20%">등락률</th><th style="width:40%">주도 근거</th></tr></thead>
+<tbody>(주도섹터 TOP3 데이터 행)</tbody>
+</table>
 
-<p>(도입부) 주입된 주도 섹터와 주요 이슈를 엮어, 왜 오늘 이 종목을 봐야만 하는지 직관적인 팩트로 훅(Hook)을 날리십시오. 3~4문장.</p>
+<h2>2. {payload['target_stock']} — 밸류체인 병목의 수혜자</h2>
+<p>(타겟 종목이 산업 내에서 어떤 위치에 있고, 가격 결정권이 있는지 분석. 400~500자.)</p>
 
-<div class="key-point"><strong>이 글의 순서</strong><br/>
+<div class="tip-box"><strong>밸류에이션 체크</strong><br/>
+(이 종목이 현재 고평가/적정/저평가인지 핵심 1줄 + 근거 수치 1개)</div>
+
+<h2>3. 퀀트 모멘텀 스코어링</h2>
+<p>(단기 수급 + 중기 해자 관점에서 점수 산출. 각 점수의 근거를 1~2문장으로.)</p>
+<table>
+<thead><tr><th style="width:30%">팩터</th><th style="width:15%">점수</th><th style="width:55%">근거</th></tr></thead>
+<tbody>
+<tr><td><strong>단기 모멘텀</strong> (수급/이슈)</td><td>[X]/10</td><td>(근거)</td></tr>
+<tr><td><strong>중기 모멘텀</strong> (성장/해자)</td><td>[X]/10</td><td>(근거)</td></tr>
+<tr><td><strong>종합 점수</strong></td><td>[X]/10</td><td>(종합 판단 1줄)</td></tr>
+</tbody>
+</table>
+
+<h2>4. 매매 신호 & 리스크 체크</h2>
+<p>(오늘의 매수/매도 신호 분포와 주의 사항. 200~300자.)</p>
+
+<blockquote><strong>리스크 경고</strong><br/>
+(이 섹터/종목의 가장 큰 하방 리스크 1가지를 명확히 경고)</blockquote>
+
+<div class="key-point"><strong>오늘의 액션 플랜</strong><br/>
 <ol>
-<li>[산업 병목]이 만든 구조적 결핍</li>
-<li>{payload['target_stock']}의 가격 결정권과 밸류체인 장악력</li>
-<li>퀀트 스코어링: 단기 수급 vs 중기 해자</li>
+<li><strong>[매수/비중확대/관망 중 택1]:</strong> [구체적 ETF/종목명] — [근거 1줄]</li>
+<li><strong>리스크 관리:</strong> [손절/비중조절 기준 1줄]</li>
+<li><strong>내일 주시 포인트:</strong> [모니터링 대상 1줄]</li>
 </ol></div>
 
-<h2>1. 밸류체인의 병목(Bottleneck), 누가 쥐고 있는가?</h2>
-<p>(분석 지시사항 1번을 바탕으로 해당 산업의 병목 현상과 경쟁 환경을 서술. 500~700자.)</p>
-<table>(병목 분야 비교표: 분야 / 진입장벽 / 가격결정권 / 관련 종목)</table>
-
-<h2>2. {payload['target_stock']} : 가격 결정권이 만드는 영업이익률의 마법</h2>
-<p>(타겟 종목이 어떻게 병목을 해결하고 영업이익을 펌핑할 수 있는지 분석. 500~700자.)</p>
-
-<div class="tip-box"><strong>투자 밸류에이션 팁</strong><br/>
-(경쟁사 비교 관점에서 이 종목이 현재 저평가인지 고평가인지 핵심 1줄 코멘트)</div>
-
-<h2>3. 입체적 모멘텀 스코어링 (단기 vs 중기)</h2>
-<p>(분석 지시사항 2번을 바탕으로 논리적 점수 산출)</p>
-<table>(단기 모멘텀 / 중기 모멘텀 비교표: 항목 / 점수 / 근거)</table>
-
-<blockquote><strong>애널리스트 팩트 체크</strong><br/>
-(분석 내용을 뒷받침하는 가장 결정적인 투자 지표나 수치 1개 강조)</blockquote>
-
-<div class="key-point"><strong>최종 투자 요약 (Executive Summary)</strong><br/>
-(전체 분석을 3문장으로 압축하고, 독자가 취해야 할 명확한 액션 플랜을 제시)</div>
-
-<p><em>본 리포트는 투자 참고용이며, 투자 판단의 책임은 본인에게 있습니다.</em></p>
+<p style="font-size:13px;color:#94a3b8;margin-top:32px"><em>본 리포트는 투자 참고용이며, 투자 판단의 책임은 본인에게 있습니다.</em></p>
 
 === HTML 규칙 (절대 준수) ===
-- <h1> 금지 (워드프레스 자동 생성)
-- <h2>, <h3>, <p>, <strong>, <ol>/<ul>, <table>, <blockquote> 사용
-- <div class="tip-box">, <div class="key-point"> 사용 가능
-- <table>은 반드시 <thead><tr><th>헤더</th></tr></thead><tbody><tr><td>내용</td></tr></tbody> 구조
-- 마크다운 문법 절대 금지 — HTML 태그만 사용
-- <strong> 강조 최소 8개
-- 분량: 2,000~3,500자 (데이터 밀도 높게)
-- 주입된 데이터의 수치만 인용. 존재하지 않는 통계/기관명 날조 절대 금지.
+- <h1> 금지. <h2>로 시작.
+- <table>: 반드시 <thead>/<tbody> 구조. <th>에 style="width:XX%" 포함.
+- <div class="tip-box">, <div class="key-point"> 활용.
+- <strong> 강조 최소 10개 — 구독자가 스캔할 때 눈에 들어오도록.
+- 마크다운 금지. HTML 태그만.
+- 분량: 2,500~4,000자.
+- 주입된 데이터 수치만 인용. 가짜 통계/기관명 날조 절대 금지.
 """
     return prompt
 
@@ -678,66 +789,84 @@ def run_etf_report(report_type: str = "blog-ready", dry_run: bool = False):
         log.error("AI 글 생성 실패 — 종료")
         return
 
-    # Step 2.5: 프리미엄 스타일링 (main.py ContentFormatter 활용)
+    # Step 2.5: 차트 + 신호 뱃지 삽입
+    daily_data = report.get("daily", {})
+    chart_svg = _build_sector_chart_svg(daily_data.get("sector_rankings", []))
+    signal_badges = _build_signal_badge_html(daily_data.get("signals_summary", {}))
+
+    # 첫 번째 <h2> 뒤에 차트 삽입 (도입부 다음)
+    if chart_svg:
+        h2_positions = [m.end() for m in _re.finditer(r'</h2>', content)]
+        if len(h2_positions) >= 2:
+            # 두 번째 h2 (섹션 1) 앞에 차트 삽입
+            insert_pos = h2_positions[0]
+            chart_block = (
+                f'\n<div style="background:#f8fafc;border-radius:12px;padding:20px 16px;margin:24px 0">'
+                f'<p style="font-size:14px;font-weight:700;color:#475569;margin:0 0 8px">'
+                f'\U0001f4ca 섹터 등락률 차트</p>'
+                f'{chart_svg}</div>\n'
+            )
+            content = content[:insert_pos] + chart_block + content[insert_pos:]
+
+    # 섹션 4 (매매 신호) 뒤에 뱃지 삽입
+    if signal_badges:
+        sig_match = _re.search(r'(<h2[^>]*>4\..*?</h2>)', content)
+        if sig_match:
+            insert_pos = sig_match.end()
+            content = content[:insert_pos] + f'\n{signal_badges}\n' + content[insert_pos:]
+
+    # Step 2.7: 프리미엄 스타일링 (main.py ContentFormatter)
     try:
         from main import ContentFormatter
         cf = ContentFormatter()
-        # ETF 리포트 전용 금융 테마 색상 적용
+        # 금융 테마: 다크 차콜 + 골드 + 그린 (파란색 금지)
         cf.H2_STYLE = (
-            'style="font-size:23px;font-weight:800;color:#0f172a;'
-            'margin:48px 0 20px;padding:16px 0 12px;'
-            'border-bottom:3px solid #1e40af"'
+            'style="font-size:22px;font-weight:800;color:#0f172a;'
+            'margin:44px 0 18px;padding:14px 0 10px;'
+            'border-bottom:3px solid #334155"'
         )
         cf.H3_STYLE = (
-            'style="font-size:18px;font-weight:700;color:#1e293b;'
-            'margin:28px 0 12px;padding-left:12px;'
-            'border-left:4px solid #1e40af"'
+            'style="font-size:17px;font-weight:700;color:#1e293b;'
+            'margin:24px 0 10px;padding-left:12px;'
+            'border-left:4px solid #475569"'
         )
-        cf.THEAD_STYLE = 'style="background:linear-gradient(135deg,#1e3a5f,#1e40af)"'
+        # 테이블: 다크 차콜 헤더 (파란색 금지)
+        cf.THEAD_STYLE = 'style="background:#1e293b"'
+        cf._table_accent = '#1e293b'
         cf.TIP_BOX_STYLE = (
-            'style="background:linear-gradient(135deg,#eff6ff,#dbeafe);'
-            'border:1px solid #60a5fa;border-radius:12px;padding:20px 24px;margin:28px 0"'
+            'style="background:linear-gradient(135deg,#fefce8,#fef9c3);'
+            'border:1px solid #eab308;border-radius:12px;padding:20px 24px;margin:28px 0"'
         )
         cf.TIP_BOX_LABEL = (
             '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
             '<span style="font-size:20px">\U0001f4b0</span>'
-            '<span style="font-weight:700;color:#1e40af;font-size:14px;letter-spacing:0.5px">'
+            '<span style="font-weight:700;color:#a16207;font-size:14px;letter-spacing:0.5px">'
             '\ud22c\uc790 \ud301</span></div>'
         )
         cf.KEY_POINT_STYLE = (
-            'style="background:linear-gradient(135deg,#fefce8,#fef9c3);'
-            'border-left:4px solid #ca8a04;'
+            'style="background:#f8fafc;border-left:4px solid #0f172a;'
             'border-radius:0 12px 12px 0;padding:18px 24px;margin:28px 0"'
         )
         cf.KEY_POINT_LABEL = (
             '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
             '<span style="font-size:18px">\U0001f3af</span>'
-            '<span style="font-weight:700;color:#a16207;font-size:14px;letter-spacing:0.5px">'
+            '<span style="font-weight:700;color:#0f172a;font-size:14px;letter-spacing:0.5px">'
             '\ud575\uc2ec \ud3ec\uc778\ud2b8</span></div>'
         )
         cf.BLOCKQUOTE_STYLE = (
-            'style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);'
-            'border-left:4px solid #16a34a;border-radius:0 12px 12px 0;'
-            'padding:20px 24px;margin:28px 0;font-style:normal;color:#166534"'
+            'style="background:linear-gradient(135deg,#fef2f2,#fee2e2);'
+            'border-left:4px solid #dc2626;border-radius:0 12px 12px 0;'
+            'padding:20px 24px;margin:28px 0;font-style:normal;color:#991b1b"'
         )
         cf.BLOCKQUOTE_LABEL = (
             '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
-            '<span style="font-size:18px">\U0001f4ca</span>'
-            '<span style="font-weight:700;color:#166534;font-size:14px;letter-spacing:0.5px">'
-            '\uc560\ub110\ub9ac\uc2a4\ud2b8 \ud329\ud2b8\uccb4\ud06c</span></div>'
+            '<span style="font-size:18px">\u26a0\ufe0f</span>'
+            '<span style="font-weight:700;color:#991b1b;font-size:14px;letter-spacing:0.5px">'
+            '\ub9ac\uc2a4\ud06c \uacbd\uace0</span></div>'
         )
-        cf.CTA_BOX = (
-            '\n<div style="background:linear-gradient(135deg,#1e3a5f,#1e40af);'
-            'border-radius:16px;padding:28px 32px;margin:40px 0;text-align:center;'
-            'box-shadow:0 8px 32px rgba(30,64,175,0.25)">\n'
-            '<p style="color:#fff;font-size:18px;font-weight:700;margin:0 0 8px">'
-            '\U0001f4c8 \ub370\uc774\ud130 \uae30\ubc18 \ud22c\uc790 \uc778\uc0ac\uc774\ud2b8</p>\n'
-            '<p style="color:rgba(255,255,255,0.85);margin:0;font-size:14px;line-height:1.6">'
-            '\ubcf8 \ub9ac\ud3ec\ud2b8\ub294 \ud22c\uc790 \ucc38\uace0\uc6a9\uc774\uba70, \ud22c\uc790 \ud310\ub2e8\uc758 \ucc45\uc784\uc740 \ubcf8\uc778\uc5d0\uac8c \uc788\uc2b5\ub2c8\ub2e4.</p>\n'
-            '</div>\n'
-        )
+        cf.CTA_BOX = ''  # ETF 리포트는 면책 문구로 대체, CTA 박스 불필요
         content = cf.format(content, keyword="ETF 시장분석", category="finance-invest")
-        log.info("프리미엄 스타일링 적용 완료")
+        log.info("프리미엄 스타일링 적용 완료 (차콜 테마)")
     except Exception as e:
         log.warning(f"스타일링 실패 (원문 유지): {e}")
 
