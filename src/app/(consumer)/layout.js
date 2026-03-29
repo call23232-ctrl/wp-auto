@@ -5,10 +5,10 @@ import { AuthProvider, useAuth, useCurrentUser, usePlanFeatures } from '@/lib/au
 import { Badge } from '@/components/ui';
 
 const NAV_ITEMS = [
-  { id: 'dashboard', label: '홈', icon: '\u25ce', path: '/dashboard' },
-  { id: 'blog', label: '내 블로그', icon: '\u25a3', path: '/blog' },
-  { id: 'revenue', label: '수익', icon: '\u2606', path: '/revenue' },
-  { id: 'settings', label: '설정', icon: '\u2699', path: '/settings' },
+  { id: 'dashboard', label: '홈', icon: '\◎', path: '/dashboard' },
+  { id: 'blog', label: '내 블로그', icon: '\▣', path: '/blog' },
+  { id: 'revenue', label: '수익', icon: '\☆', path: '/revenue' },
+  { id: 'settings', label: '설정', icon: '\⚙', path: '/settings' },
 ];
 
 function ConsumerShell({ children }) {
@@ -55,7 +55,7 @@ function ConsumerShell({ children }) {
           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{displayName}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
             <Badge text={plan.name} color={planId === 'mama' ? 'yellow' : planId === 'premium' ? 'purple' : 'blue'} />
-            {isTrial && <Badge text="7\uc77c \uccb4\ud5d8" color="green" />}
+            {isTrial && <Badge text="7\일 \체\험" color="green" />}
           </div>
         </div>
 
@@ -85,7 +85,7 @@ function ConsumerShell({ children }) {
               onClick={() => router.push('/upgrade')}
               style={{ ...styles.navItem, ...styles.upgradeBtn }}
             >
-              <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{'\u2b50'}</span>
+              <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{'\⭐'}</span>
               <span>업그레이드</span>
             </button>
           )}
@@ -95,7 +95,7 @@ function ConsumerShell({ children }) {
               onClick={() => window.location.href = '/'}
               style={{ ...styles.navItem, ...styles.adminBtn }}
             >
-              <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{'\u2630'}</span>
+              <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{'\☰'}</span>
               <span>관리자 대시보드</span>
             </button>
           )}
@@ -113,7 +113,7 @@ function ConsumerShell({ children }) {
       {/* Mobile Header */}
       <div style={styles.mobileHeader}>
         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={styles.hamburger}>
-          {mobileMenuOpen ? '\u2715' : '\u2630'}
+          {mobileMenuOpen ? '\✕' : '\☰'}
         </button>
         <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--accent)' }}>AutoBlog</span>
         <div style={{ width: 32 }} />
@@ -126,7 +126,7 @@ function ConsumerShell({ children }) {
             <div style={styles.userBox}>
               <div style={{ fontSize: 13, fontWeight: 600 }}>{displayName}</div>
               <Badge text={plan.name} color={planId === 'mama' ? 'yellow' : planId === 'premium' ? 'purple' : 'blue'} />
-              {isTrial && <Badge text="7\uc77c \uccb4\ud5d8" color="green" />}
+              {isTrial && <Badge text="7\일 \체\험" color="green" />}
             </div>
             {NAV_ITEMS.map(item => (
               <button
@@ -147,7 +147,7 @@ function ConsumerShell({ children }) {
                 onClick={() => { window.location.href = '/'; setMobileMenuOpen(false); }}
                 style={{ ...styles.navItem, ...styles.adminBtn, marginTop: 8 }}
               >
-                <span>{'\u2630'}</span>
+                <span>{'\☰'}</span>
                 <span>관리자 대시보드</span>
               </button>
             )}

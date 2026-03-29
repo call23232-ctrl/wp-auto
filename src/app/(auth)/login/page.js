@@ -27,7 +27,7 @@ export default function LoginPage() {
         router.push('/dashboard');
       } else {
         if (password !== passwordConfirm) {
-          setError('\ube44\ubc00\ubc88\ud638\uac00 \uc77c\uce58\ud558\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4');
+          setError('비밀번호가 일치하지 않습니다');
           setLoading(false);
           return;
         }
@@ -37,11 +37,11 @@ export default function LoginPage() {
     } catch (err) {
       const msg = err.message || '오류가 발생했습니다';
       const messages = {
-        'Invalid login credentials': '\uc774\uba54\uc77c \ub610\ub294 \ube44\ubc00\ubc88\ud638\uac00 \uc62c\ubc14\ub974\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4',
-        'Email not confirmed': '\uc774\uba54\uc77c \uc778\uc99d\uc774 \uc644\ub8cc\ub418\uc9c0 \uc54a\uc558\uc2b5\ub2c8\ub2e4. \uba54\uc77c\ud568\uc744 \ud655\uc778\ud574\uc8fc\uc138\uc694.',
-        'User already registered': '\uc774\ubbf8 \uac00\uc785\ub41c \uc774\uba54\uc77c\uc785\ub2c8\ub2e4',
-        'Password should be at least 6 characters': '\ube44\ubc00\ubc88\ud638\ub294 6\uc790 \uc774\uc0c1\uc774\uc5b4\uc57c \ud569\ub2c8\ub2e4',
-        'Signups not allowed for this instance': '\ud68c\uc6d0\uac00\uc785\uc774 \ube44\ud65c\uc131\ud654\ub418\uc5b4 \uc788\uc2b5\ub2c8\ub2e4',
+        'Invalid login credentials': '이메일 또는 비밀번호가 올바르지 않습니다',
+        'Email not confirmed': '이메일 인증이 완료되지 않았습니다. 메일함을 확인해주세요.',
+        'User already registered': '이미 가입된 이메일입니다',
+        'Password should be at least 6 characters': '비밀번호는 6자 이상이어야 합니다',
+        'Signups not allowed for this instance': '회원가입이 비활성화되어 있습니다',
       };
       setError(messages[msg] || msg);
     } finally {
@@ -102,17 +102,17 @@ export default function LoginPage() {
           <div>
             <label style={styles.label}>비밀번호</label>
             <div style={{ position: 'relative' }}>
-              <InputField value={password} onChange={setPassword} placeholder={mode === 'signup' ? '6자 이상' : '\ube44\ubc00\ubc88\ud638'} type={showPassword ? 'text' : 'password'} />
+              <InputField value={password} onChange={setPassword} placeholder={mode === 'signup' ? '6자 이상' : '비밀번호'} type={showPassword ? 'text' : 'password'} />
               <button type="button" onClick={() => setShowPassword(!showPassword)} style={{
                 position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
                 border: 'none', background: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--text-dim)',
-              }}>{showPassword ? '\uc228\uae30\uae30' : '\ubcf4\uae30'}</button>
+              }}>{showPassword ? '숨기기' : '보기'}</button>
             </div>
           </div>
           {mode === 'signup' && (
             <div>
               <label style={styles.label}>비밀번호 확인</label>
-              <InputField value={passwordConfirm} onChange={setPasswordConfirm} placeholder="\ube44\ubc00\ubc88\ud638 \ub2e4\uc2dc \uc785\ub825" type={showPassword ? 'text' : 'password'} />
+              <InputField value={passwordConfirm} onChange={setPasswordConfirm} placeholder="비밀번호 다시 입력" type={showPassword ? 'text' : 'password'} />
             </div>
           )}
 
