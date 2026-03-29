@@ -45,7 +45,7 @@ function ConsumerShell({ children }) {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Desktop Sidebar */}
-      <aside style={styles.sidebar}>
+      <aside className="consumer-sidebar" style={styles.sidebar}>
         <div style={styles.logo}>
           <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--accent)', letterSpacing: -0.5 }}>AutoBlog</span>
         </div>
@@ -111,7 +111,7 @@ function ConsumerShell({ children }) {
       </aside>
 
       {/* Mobile Header */}
-      <div style={styles.mobileHeader}>
+      <div className="consumer-mobile-header" style={styles.mobileHeader}>
         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={styles.hamburger}>
           {mobileMenuOpen ? '\✕' : '\☰'}
         </button>
@@ -156,7 +156,7 @@ function ConsumerShell({ children }) {
       )}
 
       {/* Main Content */}
-      <main style={styles.main}>
+      <main className="consumer-main" style={styles.main}>
         {children}
       </main>
     </div>
@@ -174,7 +174,7 @@ export default function ConsumerLayout({ children }) {
 const styles = {
   sidebar: {
     width: 240, borderRight: '1px solid var(--card-border)', background: 'var(--card)',
-    display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, bottom: 0,
+    flexDirection: 'column', position: 'fixed', top: 0, left: 0, bottom: 0,
     zIndex: 50,
   },
   logo: {
@@ -200,10 +200,10 @@ const styles = {
     padding: '12px 20px', borderTop: '1px solid var(--card-border)',
   },
   main: {
-    flex: 1, marginLeft: 240, padding: 32, minHeight: '100vh',
+    flex: 1, minHeight: '100vh',
   },
   mobileHeader: {
-    display: 'none', position: 'fixed', top: 0, left: 0, right: 0, height: 56,
+    position: 'fixed', top: 0, left: 0, right: 0, height: 56,
     background: 'var(--card)', borderBottom: '1px solid var(--card-border)',
     alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', zIndex: 40,
   },

@@ -117,7 +117,7 @@ export default function BlogPage() {
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24, marginBottom: 24 }}>
+      <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24, marginBottom: 24 }}>
         {/* Posts List */}
         <Card>
           <SectionTitle>발행 목록</SectionTitle>

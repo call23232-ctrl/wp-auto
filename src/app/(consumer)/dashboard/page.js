@@ -177,7 +177,7 @@ export default function ConsumerDashboard() {
         )}
       </Card>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
+      <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
         {/* Smart Actions */}
         <Card>
           <SectionTitle>다음 할 일</SectionTitle>

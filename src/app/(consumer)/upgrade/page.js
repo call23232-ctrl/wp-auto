@@ -31,7 +31,7 @@ export default function UpgradePage() {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 40 }}>
+      <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 40 }}>
         {plans.map(pid => {
           const p = PLANS[pid];
           const isCurrent = pid === planId;
