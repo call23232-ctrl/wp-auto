@@ -163,7 +163,7 @@ export default function OnboardingPage() {
       {/* Step 1: Site Connection */}
       {step === 1 && (
         <Card style={styles.card}>
-          <div style={styles.stepIcon}>&#x1f310;</div>
+          <div style={styles.stepIcon}>{'\ud83c\udf10'}</div>
           <h2 style={styles.stepTitle}>사이트 연결</h2>
           <p style={styles.stepDesc}>WordPress 사이트를 연결하면 자동 발행이 시작됩니다.</p>
 
@@ -185,12 +185,12 @@ export default function OnboardingPage() {
             </div>
             {siteTestResult === 'success' && (
               <div style={{ ...styles.testResult, background: 'var(--green-bg)', color: 'var(--green)' }}>
-                &#x2705; 연결 성공! WordPress 사이트가 확인되었습니다.
+                {'\u2705'} 연결 성공! WordPress 사이트가 확인되었습니다.
               </div>
             )}
             {siteTestResult === 'failed' && (
               <div style={{ ...styles.testResult, background: 'var(--red-bg)', color: 'var(--red)' }}>
-                &#x274c; 연결 실패. URL과 인증 정보를 확인해주세요.
+                {'\u274c'} 연결 실패. URL과 인증 정보를 확인해주세요.
               </div>
             )}
             {siteTestResult === 'testing' && (
@@ -210,7 +210,7 @@ export default function OnboardingPage() {
       {/* Step 2: Categories */}
       {step === 2 && (
         <Card style={styles.card}>
-          <div style={styles.stepIcon}>&#x1f4c2;</div>
+          <div style={styles.stepIcon}>{'\ud83d\udcc2'}</div>
           <h2 style={styles.stepTitle}>카테고리 선택</h2>
           <p style={styles.stepDesc}>어떤 주제의 글을 발행할까요? 최소 2개를 선택해주세요.</p>
 
@@ -241,7 +241,7 @@ export default function OnboardingPage() {
       {/* Step 3: Schedule */}
       {step === 3 && (
         <Card style={styles.card}>
-          <div style={styles.stepIcon}>&#x1f553;</div>
+          <div style={styles.stepIcon}>{'\ud83d\udd53'}</div>
           <h2 style={styles.stepTitle}>발행 스케줄</h2>
           <p style={styles.stepDesc}>글을 자동으로 발행할 시간을 선택하세요. 언제든 변경할 수 있습니다.</p>
 
@@ -308,7 +308,7 @@ export default function OnboardingPage() {
       {/* Step 5: Complete */}
       {step === 5 && (
         <Card style={{ ...styles.card, textAlign: 'center' }}>
-          <div style={{ fontSize: 64, marginBottom: 16 }}>&#x1f389;</div>
+          <div style={{ fontSize: 64, marginBottom: 16 }}>{'\ud83c\udf89'}</div>
           <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>준비 완료!</h2>
           <p style={{ color: 'var(--text-dim)', fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
             첫 글이 곧 자동 발행됩니다.<br />
@@ -334,7 +334,7 @@ export default function OnboardingPage() {
             padding: 12, background: 'linear-gradient(135deg, #f5f3ff, #ede9fe)',
             borderRadius: 10, fontSize: 12, color: 'var(--accent)', fontWeight: 500, marginBottom: 20,
           }}>
-            &#x1f381; Premium 7일 무료 체험이 활성화되었습니다!
+            {'\ud83c\udf81'} Premium 7일 무료 체험이 활성화되었습니다!
           </div>
         </Card>
       )}

@@ -74,17 +74,20 @@ export function useCurrentUser() {
 }
 
 export function usePlanFeatures() {
-  const { planId } = useCurrentUser();
-  const plan = getPlan(planId);
+  const { planId, trialActive } = useCurrentUser();
+  const effectivePlanId = (planId === 'standard' && trialActive) ? 'premium' : planId;
+  const plan = getPlan(effectivePlanId);
   return {
     plan,
-    planId,
+    planId: effectivePlanId,
+    actualPlanId: planId,
     hasFeature: (feature) => plan.features[feature] === true,
     maxSites: plan.maxSites,
     maxDailyPosts: plan.maxDailyPosts,
     maxCategories: plan.maxCategories,
-    isPremiumOrAbove: planId === 'premium' || planId === 'mama',
-    isMama: planId === 'mama',
+    isPremiumOrAbove: effectivePlanId === 'premium' || effectivePlanId === 'mama',
+    isMama: effectivePlanId === 'mama',
+    isTrial: planId === 'standard' && trialActive,
   };
 }
 

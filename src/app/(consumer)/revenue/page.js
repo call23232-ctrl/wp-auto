@@ -5,6 +5,7 @@ import { supabase, monthStartKST } from '@/lib/supabase';
 import { useCurrentUser, useUserSites, usePlanFeatures } from '@/lib/auth';
 import { Card, StatCard, SectionTitle, Badge, ProgressBar, ActionButton, PlanLock } from '@/components/ui';
 
+
 const STAGES = [
   { id: 1, label: 'AdSense 승인', color: '#3b82f6',
     desc: '양질의 콘텐츠로 Google AdSense 승인을 획득합니다.',
@@ -28,6 +29,7 @@ export default function RevenuePage() {
   const [prevMonthTotal, setPrevMonthTotal] = useState(0);
   const [byChannel, setByChannel] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!siteId) { setLoading(false); return; }
@@ -35,34 +37,37 @@ export default function RevenuePage() {
     const monthStart = monthStartKST();
     const prevStart = getPrevMonthStart();
 
-    async function fetch() {
-      const [currentRes, prevRes, trendRes] = await Promise.all([
-        supabase.from('revenue').select('amount, source').eq('site_id', siteId).gte('date', monthStart),
-        supabase.from('revenue').select('amount').eq('site_id', siteId).gte('date', prevStart).lt('date', monthStart),
-        supabase.from('revenue').select('date, amount, source').eq('site_id', siteId)
-          .gte('date', getLast30Days()).order('date'),
-      ]);
+    async function fetchData() {
+      try {
+        const [currentRes, prevRes, trendRes] = await Promise.all([
+          supabase.from('revenue').select('amount, source').eq('site_id', siteId).gte('date', monthStart),
+          supabase.from('revenue').select('amount').eq('site_id', siteId).gte('date', prevStart).lt('date', monthStart),
+          supabase.from('revenue').select('date, amount, source').eq('site_id', siteId)
+            .gte('date', getLast30Days()).order('date'),
+        ]);
 
-      const current = currentRes.data || [];
-      setMonthTotal(current.reduce((s, r) => s + (r.amount || 0), 0));
-      setPrevMonthTotal((prevRes.data || []).reduce((s, r) => s + (r.amount || 0), 0));
+        const current = currentRes.data || [];
+        setMonthTotal(current.reduce((s, r) => s + (r.amount || 0), 0));
+        setPrevMonthTotal((prevRes.data || []).reduce((s, r) => s + (r.amount || 0), 0));
 
-      const channels = {};
-      for (const r of current) {
-        const src = r.source || '기타';
-        channels[src] = (channels[src] || 0) + (r.amount || 0);
+        const channels = {};
+        for (const r of current) {
+          const src = r.source || '\uae30\ud0c0';
+          channels[src] = (channels[src] || 0) + (r.amount || 0);
+        }
+        setByChannel(channels);
+
+        const byDate = {};
+        for (const r of (trendRes.data || [])) {
+          byDate[r.date] = (byDate[r.date] || 0) + (r.amount || 0);
+        }
+        setRevenueData(Object.entries(byDate).map(([date, amount]) => ({ date, amount })));
+      } catch (err) {
+        setError(err.message || '\ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4');
       }
-      setByChannel(channels);
-
-      // Aggregate daily
-      const byDate = {};
-      for (const r of (trendRes.data || [])) {
-        byDate[r.date] = (byDate[r.date] || 0) + (r.amount || 0);
-      }
-      setRevenueData(Object.entries(byDate).map(([date, amount]) => ({ date, amount })));
       setLoading(false);
     }
-    fetch();
+    fetchData();
   }, [siteId]);
 
   const changeRate = prevMonthTotal > 0
@@ -73,7 +78,29 @@ export default function RevenuePage() {
 
   const currentStage = STAGES.find(s => s.id === monetizationStage) || STAGES[0];
 
-  if (loading) return <div style={{ padding: 40, color: 'var(--text-dim)', textAlign: 'center' }}>로딩 중...</div>;
+  if (loading) return <div style={{ padding: 40, color: 'var(--text-dim)', textAlign: 'center' }}>{'\ub85c\ub529 \uc911...'}</div>;
+
+  if (error) {
+    return (
+      <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>{'\u26a0\ufe0f'}</div>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{'\ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4'}</h2>
+        <p style={{ color: 'var(--text-dim)', fontSize: 13 }}>{error}</p>
+        <ActionButton onClick={() => window.location.reload()} variant="secondary" style={{ marginTop: 16 }}>{'\ub2e4\uc2dc \uc2dc\ub3c4'}</ActionButton>
+      </div>
+    );
+  }
+
+  if (!siteId) {
+    return (
+      <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>{'\ud83d\udcb0'}</div>
+        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>사이트를 먼저 연결해주세요</h2>
+        <p style={{ color: 'var(--text-dim)', marginBottom: 24, fontSize: 14 }}>WordPress 사이트가 연결되면 수익 현황을 여기서 확인할 수 있습니다.</p>
+        <ActionButton onClick={() => window.location.href = '/settings'}>설정에서 연결하기</ActionButton>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto' }}>

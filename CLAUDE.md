@@ -13,12 +13,19 @@ AutoBlog Engine v5.0 + Dashboard — AI 기반 자동 블로그 콘텐츠 생성
 
 ## Architecture
 ```
-scripts/main.py       → Content generation & WordPress publishing (Python)
-src/app/page.js       → Monitoring dashboard (React, "use client")
-src/lib/hooks.js      → 7 custom hooks for Supabase data fetching
-src/lib/supabase.js   → Supabase client initialization
-data/                 → keywords.json, used_keywords.json, affiliates.json
-.github/workflows/    → publish.yml (automated 4x daily)
+scripts/main.py              → Content generation & WordPress publishing (Python)
+src/app/page.js              → Admin monitoring dashboard (React, "use client")
+src/app/(auth)/login/        → Consumer login/signup
+src/app/(consumer)/          → Consumer dashboard (dashboard, blog, revenue, settings, onboarding, upgrade)
+src/app/api/setup/route.js   → GitHub Actions trigger API (menu/css/publish)
+src/components/ui.js         → Shared UI components (Card, StatCard, Badge, etc.)
+src/lib/auth.js              → AuthProvider + consumer hooks (useCurrentUser, usePlanFeatures)
+src/lib/plan-features.js     → Standard/Premium/MaMa plan definitions & feature flags
+src/lib/hooks.js             → Admin dashboard hooks for Supabase data fetching
+src/lib/supabase.js          → Supabase client + auth helpers
+migrations/                  → Supabase SQL migrations
+data/                        → keywords.json, used_keywords.json, affiliates.json
+.github/workflows/           → publish.yml, setup-menu.yml, inject-css.yml, etf-report.yml
 ```
 
 ## Key Commands
@@ -40,7 +47,8 @@ python scripts/main.py --pipeline hotdeal      # Specific pipeline
 - **Timezone:** KST (UTC+9) throughout
 
 ## Database Tables
-sites, publish_logs, api_costs, revenue, seo_health, email_stats, sns_stats, alerts, dashboard_config
+- **Core:** sites, publish_logs, api_costs, revenue, seo_health, email_stats, sns_stats, alerts, dashboard_config
+- **Consumer:** plans, user_profiles (extends auth.users), user_sites, user_milestones (RLS enabled)
 
 ## Environment Variables
 - Frontend: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY

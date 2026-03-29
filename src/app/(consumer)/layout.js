@@ -15,8 +15,8 @@ function ConsumerShell({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, loading } = useAuth();
-  const { displayName, planId, onboardingCompleted, trialActive, isAdmin } = useCurrentUser();
-  const { plan } = usePlanFeatures();
+  const { displayName, planId: actualPlanId, onboardingCompleted, trialActive, isAdmin } = useCurrentUser();
+  const { plan, planId, isTrial } = usePlanFeatures();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -55,7 +55,7 @@ function ConsumerShell({ children }) {
           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{displayName}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
             <Badge text={plan.name} color={planId === 'mama' ? 'yellow' : planId === 'premium' ? 'purple' : 'blue'} />
-            {trialActive && <Badge text="Trial" color="green" />}
+            {isTrial && <Badge text="7\uc77c \uccb4\ud5d8" color="green" />}
           </div>
         </div>
 
@@ -80,7 +80,7 @@ function ConsumerShell({ children }) {
             );
           })}
 
-          {planId === 'standard' && (
+          {actualPlanId === 'standard' && (
             <button
               onClick={() => router.push('/upgrade')}
               style={{ ...styles.navItem, ...styles.upgradeBtn }}
@@ -125,7 +125,8 @@ function ConsumerShell({ children }) {
           <div style={styles.mobileMenu} onClick={e => e.stopPropagation()}>
             <div style={styles.userBox}>
               <div style={{ fontSize: 13, fontWeight: 600 }}>{displayName}</div>
-              <Badge text={plan.name} color={planId === 'premium' ? 'purple' : 'blue'} />
+              <Badge text={plan.name} color={planId === 'mama' ? 'yellow' : planId === 'premium' ? 'purple' : 'blue'} />
+              {isTrial && <Badge text="7\uc77c \uccb4\ud5d8" color="green" />}
             </div>
             {NAV_ITEMS.map(item => (
               <button
@@ -141,6 +142,15 @@ function ConsumerShell({ children }) {
                 <span>{item.label}</span>
               </button>
             ))}
+            {isAdmin && (
+              <button
+                onClick={() => { window.location.href = '/'; setMobileMenuOpen(false); }}
+                style={{ ...styles.navItem, ...styles.adminBtn, marginTop: 8 }}
+              >
+                <span>{'\u2630'}</span>
+                <span>관리자 대시보드</span>
+              </button>
+            )}
           </div>
         </div>
       )}

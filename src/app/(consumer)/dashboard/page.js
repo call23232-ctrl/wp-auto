@@ -22,6 +22,7 @@ export default function ConsumerDashboard() {
   const [recentPosts, setRecentPosts] = useState([]);
   const [revenueTrend, setRevenueTrend] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!siteId) { setLoading(false); return; }
@@ -30,6 +31,7 @@ export default function ConsumerDashboard() {
     const monthStart = monthStartKST();
 
     async function fetchAll() {
+      try {
       const [postsRes, totalRes, recentRes, revenueRes, prevRevenueRes, trendRes] = await Promise.all([
         // Today's posts
         supabase.from('publish_logs').select('status', { count: 'exact' })
@@ -64,6 +66,9 @@ export default function ConsumerDashboard() {
       setMonthRevenue((revenueRes.data || []).reduce((s, r) => s + (r.amount || 0), 0));
       setPrevMonthRevenue((prevRevenueRes.data || []).reduce((s, r) => s + (r.amount || 0), 0));
       setRevenueTrend(aggregateTrend(trendRes.data || []));
+      } catch (err) {
+        setError(err.message || '\ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4');
+      }
       setLoading(false);
     }
 
@@ -95,13 +100,24 @@ export default function ConsumerDashboard() {
   }, [totalPosts, monetizationStage]);
 
   if (loading) {
-    return <div style={{ padding: 40, color: 'var(--text-dim)', textAlign: 'center' }}>대시보드 로딩 중...</div>;
+    return <div style={{ padding: 40, color: 'var(--text-dim)', textAlign: 'center' }}>{'\ub300\uc2dc\ubcf4\ub4dc \ub85c\ub529 \uc911...'}</div>;
+  }
+
+  if (error) {
+    return (
+      <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>{'\u26a0\ufe0f'}</div>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{'\ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4'}</h2>
+        <p style={{ color: 'var(--text-dim)', fontSize: 13 }}>{error}</p>
+        <ActionButton onClick={() => window.location.reload()} variant="secondary" style={{ marginTop: 16 }}>{'\ub2e4\uc2dc \uc2dc\ub3c4'}</ActionButton>
+      </div>
+    );
   }
 
   if (!siteId) {
     return (
       <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>&#x1f310;</div>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>{'\ud83c\udf10'}</div>
         <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>사이트를 연결해주세요</h2>
         <p style={{ color: 'var(--text-dim)', marginBottom: 24 }}>블로그 사이트를 연결하면 자동 발행이 시작됩니다.</p>
         <ActionButton onClick={() => window.location.href = '/settings'}>사이트 연결하기</ActionButton>
@@ -170,7 +186,7 @@ export default function ConsumerDashboard() {
             background: 'var(--accent-bg)',
           }}>
             <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>
-              &#x1f3af; {smartAction.text}
+              {'\ud83c\udfaf'} {smartAction.text}
             </div>
             {smartAction.action && (
               <div style={{ marginTop: 10 }}>

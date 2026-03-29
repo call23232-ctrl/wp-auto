@@ -117,15 +117,15 @@ export default function SettingsPage() {
             <div style={{
               width: 40, height: 40, borderRadius: 10, background: 'var(--accent-bg)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
-            }}>&#x1f310;</div>
+            }}>{'\ud83c\udf10'}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 600 }}>{site.name || site.domain}</div>
               <div style={{ fontSize: 12, color: 'var(--text-dim)' }}>
-                &#x2705; 연결됨
+                {'\u2705'} 연결됨
                 {site.domain && (
                   <a href={`https://${site.domain}`} target="_blank" rel="noopener noreferrer"
                     style={{ marginLeft: 8, color: 'var(--accent)', textDecoration: 'none' }}>
-                    방문 &#x2197;
+                    방문 {'\u2197'}
                   </a>
                 )}
               </div>
@@ -221,7 +221,7 @@ export default function SettingsPage() {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{action.label}</div>
                   <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>
-                    {isDone ? action.successMsg : isFailed ? '\u274c \uc2e4\ud328. \ub2e4\uc2dc \uc2dc\ub3c4\ud574\uc8fc\uc138\uc694.' : action.desc}
+                    {isDone ? action.successMsg : isFailed ? `\u274c ${setupStatus[`${action.id}_error`] || '\uc2e4\ud328'}. \ub2e4\uc2dc \uc2dc\ub3c4\ud574\uc8fc\uc138\uc694.` : action.desc}
                   </div>
                 </div>
                 <ActionButton
@@ -230,13 +230,21 @@ export default function SettingsPage() {
                   onClick={async () => {
                     setSetupStatus(prev => ({ ...prev, [action.id]: 'loading' }));
                     try {
+                      const { data: { session } } = await supabase.auth.getSession();
                       const res = await fetch('/api/setup', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${session?.access_token || ''}`,
+                        },
                         body: JSON.stringify({ action: action.id, inputs: action.inputs || {} }),
                       });
                       const data = await res.json();
-                      setSetupStatus(prev => ({ ...prev, [action.id]: data.success ? 'done' : 'failed' }));
+                      if (data.success) {
+                        setSetupStatus(prev => ({ ...prev, [action.id]: 'done' }));
+                      } else {
+                        setSetupStatus(prev => ({ ...prev, [action.id]: 'failed', [`${action.id}_error`]: data.error || '\uc2e4\ud328' }));
+                      }
                     } catch {
                       setSetupStatus(prev => ({ ...prev, [action.id]: 'failed' }));
                     }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPO = process.env.GITHUB_REPO || 'mymiryu-commits/wp-auto';
@@ -9,9 +10,35 @@ const ALLOWED_WORKFLOWS = {
   'publish': 'publish.yml',
 };
 
+async function verifyAuth(request) {
+  const authHeader = request.headers.get('authorization');
+  const cookieHeader = request.headers.get('cookie');
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  );
+
+  // Try Bearer token first, then cookie session
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (!error && user) return user;
+  }
+
+  // Fallback: check access_token from cookie or body
+  return null;
+}
+
 export async function POST(request) {
   if (!GITHUB_TOKEN) {
     return NextResponse.json({ error: 'GITHUB_TOKEN not configured' }, { status: 500 });
+  }
+
+  // Auth check
+  const user = await verifyAuth(request);
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { action, inputs } = await request.json();

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { supabase } from '@/lib/supabase';
 import { useUserSites, usePlanFeatures } from '@/lib/auth';
-import { Card, SectionTitle, Badge, EmptyState, PillButton, PlanLock } from '@/components/ui';
+import { Card, SectionTitle, Badge, EmptyState, PillButton, PlanLock, ActionButton } from '@/components/ui';
 
 const PIE_COLORS = ['#7c3aed', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6'];
 const FILTERS = [
@@ -21,36 +21,41 @@ export default function BlogPage() {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [stats, setStats] = useState({ total: 0, avgQuality: 0 });
 
   useEffect(() => {
     if (!siteId) { setLoading(false); return; }
 
-    async function fetch() {
-      let query = supabase.from('publish_logs').select('*')
-        .eq('site_id', siteId).eq('status', 'success')
-        .order('published_at', { ascending: false });
+    async function fetchData() {
+      try {
+        let query = supabase.from('publish_logs').select('*')
+          .eq('site_id', siteId).eq('status', 'success')
+          .order('published_at', { ascending: false });
 
-      if (filter === 'today') {
-        const today = new Date().toISOString().split('T')[0];
-        query = query.gte('published_at', today + 'T00:00:00');
-      } else if (filter === 'week') {
-        const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
-        query = query.gte('published_at', weekAgo);
+        if (filter === 'today') {
+          const today = new Date().toISOString().split('T')[0];
+          query = query.gte('published_at', today + 'T00:00:00');
+        } else if (filter === 'week') {
+          const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+          query = query.gte('published_at', weekAgo);
+        }
+
+        const { data } = await query.limit(50);
+        const allPosts = data || [];
+        setPosts(allPosts);
+
+        const qualities = allPosts.filter(p => p.quality_score != null);
+        setStats({
+          total: allPosts.length,
+          avgQuality: qualities.length > 0 ? Math.round(qualities.reduce((s, p) => s + p.quality_score, 0) / qualities.length) : 0,
+        });
+      } catch (err) {
+        setError(err.message || '\ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4');
       }
-
-      const { data } = await query.limit(50);
-      const allPosts = data || [];
-      setPosts(allPosts);
-
-      const qualities = allPosts.filter(p => p.quality_score != null);
-      setStats({
-        total: allPosts.length,
-        avgQuality: qualities.length > 0 ? Math.round(qualities.reduce((s, p) => s + p.quality_score, 0) / qualities.length) : 0,
-      });
       setLoading(false);
     }
-    fetch();
+    fetchData();
   }, [siteId, filter]);
 
   const filteredPosts = search
@@ -61,7 +66,29 @@ export default function BlogPage() {
     posts.reduce((acc, p) => { acc[p.niche || '기타'] = (acc[p.niche || '기타'] || 0) + 1; return acc; }, {})
   ).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
 
-  if (loading) return <div style={{ padding: 40, color: 'var(--text-dim)', textAlign: 'center' }}>로딩 중...</div>;
+  if (loading) return <div style={{ padding: 40, color: 'var(--text-dim)', textAlign: 'center' }}>{'\ub85c\ub529 \uc911...'}</div>;
+
+  if (error) {
+    return (
+      <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>{'\u26a0\ufe0f'}</div>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{'\ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4'}</h2>
+        <p style={{ color: 'var(--text-dim)', fontSize: 13 }}>{error}</p>
+        <ActionButton onClick={() => window.location.reload()} variant="secondary" style={{ marginTop: 16 }}>{'\ub2e4\uc2dc \uc2dc\ub3c4'}</ActionButton>
+      </div>
+    );
+  }
+
+  if (!siteId) {
+    return (
+      <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>{'\ud83d\udcdd'}</div>
+        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>사이트를 먼저 연결해주세요</h2>
+        <p style={{ color: 'var(--text-dim)', marginBottom: 24, fontSize: 14 }}>WordPress 사이트가 연결되면 발행된 글을 여기서 확인할 수 있습니다.</p>
+        <ActionButton onClick={() => window.location.href = '/settings'}>설정에서 연결하기</ActionButton>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto' }}>
@@ -81,7 +108,7 @@ export default function BlogPage() {
         ))}
         <input
           value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="&#x1f50d; 검색..."
+          placeholder="\ud83d\udd0d 검색..."
           style={{
             marginLeft: 'auto', padding: '8px 14px', borderRadius: 10,
             border: '1px solid var(--border-light)', background: 'var(--input-bg)',
@@ -119,7 +146,7 @@ export default function BlogPage() {
                     {post.wp_post_id && (
                       <a href={`https://${sites[0]?.domain || ''}/?p=${post.wp_post_id}`} target="_blank" rel="noopener noreferrer"
                         style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}>
-                        &#x2197;
+                        {'\u2197'}
                       </a>
                     )}
                   </div>
