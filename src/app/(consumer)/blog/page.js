@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { supabase } from '@/lib/supabase';
 import { useUserSites, usePlanFeatures } from '@/lib/auth';
@@ -13,6 +14,7 @@ const FILTERS = [
 ];
 
 export default function BlogPage() {
+  const router = useRouter();
   const { sites } = useUserSites();
   const { isPremiumOrAbove } = usePlanFeatures();
   const siteId = sites[0]?.id;
@@ -30,7 +32,7 @@ export default function BlogPage() {
     async function fetchData() {
       try {
         let query = supabase.from('publish_logs').select('*')
-          .eq('site_id', siteId).eq('status', 'success')
+          .eq('site_id', siteId).eq('status', 'published')
           .order('published_at', { ascending: false });
 
         if (filter === 'today') {
@@ -51,7 +53,7 @@ export default function BlogPage() {
           avgQuality: qualities.length > 0 ? Math.round(qualities.reduce((s, p) => s + p.quality_score, 0) / qualities.length) : 0,
         });
       } catch (err) {
-        setError(err.message || '\ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4');
+        setError(err.message || '데이터를 불러오지 못했습니다');
       }
       setLoading(false);
     }
@@ -66,15 +68,15 @@ export default function BlogPage() {
     posts.reduce((acc, p) => { acc[p.niche || '기타'] = (acc[p.niche || '기타'] || 0) + 1; return acc; }, {})
   ).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
 
-  if (loading) return <div style={{ padding: 40, color: 'var(--text-dim)', textAlign: 'center' }}>{'\ub85c\ub529 \uc911...'}</div>;
+  if (loading) return <div style={{ padding: 40, color: 'var(--text-dim)', textAlign: 'center' }}>{'로딩 중...'}</div>;
 
   if (error) {
     return (
       <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>{'\u26a0\ufe0f'}</div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{'\ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4'}</h2>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>{'⚠️'}</div>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{'데이터를 불러오지 못했습니다'}</h2>
         <p style={{ color: 'var(--text-dim)', fontSize: 13 }}>{error}</p>
-        <ActionButton onClick={() => window.location.reload()} variant="secondary" style={{ marginTop: 16 }}>{'\ub2e4\uc2dc \uc2dc\ub3c4'}</ActionButton>
+        <ActionButton onClick={() => window.location.reload()} variant="secondary" style={{ marginTop: 16 }}>{'다시 시도'}</ActionButton>
       </div>
     );
   }
@@ -82,10 +84,10 @@ export default function BlogPage() {
   if (!siteId) {
     return (
       <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>{'\ud83d\udcdd'}</div>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>{'📝'}</div>
         <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>사이트를 먼저 연결해주세요</h2>
         <p style={{ color: 'var(--text-dim)', marginBottom: 24, fontSize: 14 }}>WordPress 사이트가 연결되면 발행된 글을 여기서 확인할 수 있습니다.</p>
-        <ActionButton onClick={() => window.location.href = '/settings'}>설정에서 연결하기</ActionButton>
+        <ActionButton onClick={() => router.push('/settings')}>설정에서 연결하기</ActionButton>
       </div>
     );
   }
@@ -108,7 +110,7 @@ export default function BlogPage() {
         ))}
         <input
           value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="\ud83d\udd0d 검색..."
+          placeholder="🔍 검색..."
           style={{
             marginLeft: 'auto', padding: '8px 14px', borderRadius: 10,
             border: '1px solid var(--border-light)', background: 'var(--input-bg)',
@@ -146,7 +148,7 @@ export default function BlogPage() {
                     {post.wp_post_id && (
                       <a href={`https://${sites[0]?.domain || ''}/?p=${post.wp_post_id}`} target="_blank" rel="noopener noreferrer"
                         style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}>
-                        {'\u2197'}
+                        {'↗'}
                       </a>
                     )}
                   </div>

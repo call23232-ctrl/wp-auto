@@ -9,6 +9,8 @@ AutoBlog Engine v5.0 + Dashboard — AI 기반 자동 블로그 콘텐츠 생성
 - **Database:** Supabase (PostgreSQL) with Realtime
 - **AI Models:** DeepSeek V3 (primary), Claude Sonnet 4 (polish), Grok/Gemini/GPT (fallback)
 - **CI/CD:** GitHub Actions (4 daily scheduled runs at KST 07/12/17/22)
+- **Deployment:** Vercel (auto-deploy from planxs-ai/wp-auto, git author: planxsol@gmail.com)
+- **Domain:** 30daysliving.com (consumer), wp-auto.vercel.app (admin)
 - **Monetization:** Adsense, Coupang CPS, Tenping CPA
 
 ## Architecture

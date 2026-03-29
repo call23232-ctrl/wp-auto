@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase, todayKST, monthStartKST } from '@/lib/supabase';
 import { useCurrentUser, usePlanFeatures, useUserSites, useMilestones } from '@/lib/auth';
@@ -7,6 +8,7 @@ import { MILESTONES } from '@/lib/plan-features';
 import { Card, StatCard, SectionTitle, Badge, ProgressBar, ActionButton, PlanLock } from '@/components/ui';
 
 export default function ConsumerDashboard() {
+  const router = useRouter();
   const { displayName, monetizationStage } = useCurrentUser();
   const { plan, planId, isPremiumOrAbove } = usePlanFeatures();
   const { sites } = useUserSites();
@@ -38,10 +40,10 @@ export default function ConsumerDashboard() {
           .eq('site_id', siteId).gte('published_at', today + 'T00:00:00+09:00').lt('published_at', today + 'T23:59:59+09:00'),
         // Total posts
         supabase.from('publish_logs').select('id', { count: 'exact', head: true })
-          .eq('site_id', siteId).eq('status', 'success'),
+          .eq('site_id', siteId).eq('status', 'published'),
         // Recent 5 posts
         supabase.from('publish_logs').select('*')
-          .eq('site_id', siteId).eq('status', 'success').order('published_at', { ascending: false }).limit(5),
+          .eq('site_id', siteId).eq('status', 'published').order('published_at', { ascending: false }).limit(5),
         // This month revenue
         supabase.from('revenue').select('amount')
           .eq('site_id', siteId).gte('date', monthStart),
@@ -67,7 +69,7 @@ export default function ConsumerDashboard() {
       setPrevMonthRevenue((prevRevenueRes.data || []).reduce((s, r) => s + (r.amount || 0), 0));
       setRevenueTrend(aggregateTrend(trendRes.data || []));
       } catch (err) {
-        setError(err.message || '\ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4');
+        setError(err.message || '데이터를 불러오지 못했습니다');
       }
       setLoading(false);
     }
@@ -100,16 +102,16 @@ export default function ConsumerDashboard() {
   }, [totalPosts, monetizationStage]);
 
   if (loading) {
-    return <div style={{ padding: 40, color: 'var(--text-dim)', textAlign: 'center' }}>{'\ub300\uc2dc\ubcf4\ub4dc \ub85c\ub529 \uc911...'}</div>;
+    return <div style={{ padding: 40, color: 'var(--text-dim)', textAlign: 'center' }}>{'대시보드 로딩 중...'}</div>;
   }
 
   if (error) {
     return (
       <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>{'\u26a0\ufe0f'}</div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{'\ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4'}</h2>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>{'⚠️'}</div>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{'데이터를 불러오지 못했습니다'}</h2>
         <p style={{ color: 'var(--text-dim)', fontSize: 13 }}>{error}</p>
-        <ActionButton onClick={() => window.location.reload()} variant="secondary" style={{ marginTop: 16 }}>{'\ub2e4\uc2dc \uc2dc\ub3c4'}</ActionButton>
+        <ActionButton onClick={() => window.location.reload()} variant="secondary" style={{ marginTop: 16 }}>{'다시 시도'}</ActionButton>
       </div>
     );
   }
@@ -117,10 +119,10 @@ export default function ConsumerDashboard() {
   if (!siteId) {
     return (
       <div style={{ maxWidth: 600, margin: '80px auto', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>{'\ud83c\udf10'}</div>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>{'🌐'}</div>
         <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>사이트를 연결해주세요</h2>
         <p style={{ color: 'var(--text-dim)', marginBottom: 24 }}>블로그 사이트를 연결하면 자동 발행이 시작됩니다.</p>
-        <ActionButton onClick={() => window.location.href = '/settings'}>사이트 연결하기</ActionButton>
+        <ActionButton onClick={() => router.push('/settings')}>사이트 연결하기</ActionButton>
       </div>
     );
   }
@@ -139,13 +141,13 @@ export default function ConsumerDashboard() {
 
       {/* Score Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
-        <StatCard label="오늘 발행" value={`${todayStats.posts}편`} color="var(--accent)" icon="\u25a3"
+        <StatCard label="오늘 발행" value={`${todayStats.posts}편`} color="var(--accent)" icon="▣"
           sub={todayStats.posts > 0 ? `목표 ${plan.maxDailyPosts === 999 ? '무제한' : plan.maxDailyPosts}편` : '발행 대기 중'} />
         <StatCard label="이달 수익" value={fmtKRW(monthRevenue)} color="var(--green)"
-          icon="\u2606" sub={revenueChange !== 0 ? `${revenueChange > 0 ? '\u25b2' : '\u25bc'}${Math.abs(revenueChange)}% vs 지난달` : ''} />
-        <StatCard label="총 발행" value={`${totalPosts}편`} color="var(--blue)" icon="\u25ce" />
+          icon="☆" sub={revenueChange !== 0 ? `${revenueChange > 0 ? '▲' : '▼'}${Math.abs(revenueChange)}% vs 지난달` : ''} />
+        <StatCard label="총 발행" value={`${totalPosts}편`} color="var(--blue)" icon="◎" />
         <StatCard label="블로그 건강도" value={`${healthScore}점`} color={healthColor}
-          icon="\u25c9" sub={healthLabel} />
+          icon="◉" sub={healthLabel} />
       </div>
 
       {/* Revenue Trend */}
@@ -164,7 +166,7 @@ export default function ConsumerDashboard() {
                 tickFormatter={v => v.slice(5)} />
               <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false}
                 tickFormatter={v => `${Math.round(v / 1000)}k`} />
-              <Tooltip formatter={(v) => [`\u20a9${v.toLocaleString()}`, '수익']}
+              <Tooltip formatter={(v) => [`₩${v.toLocaleString()}`, '수익']}
                 contentStyle={{ borderRadius: 10, border: '1px solid #e2e8f0', fontSize: 12 }} />
               <Area type="monotone" dataKey="amount" stroke="var(--accent)" strokeWidth={2}
                 fill="url(#colorRevenue)" />
@@ -186,7 +188,7 @@ export default function ConsumerDashboard() {
             background: 'var(--accent-bg)',
           }}>
             <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>
-              {'\ud83c\udfaf'} {smartAction.text}
+              {'🎯'} {smartAction.text}
             </div>
             {smartAction.action && (
               <div style={{ marginTop: 10 }}>
@@ -201,7 +203,7 @@ export default function ConsumerDashboard() {
         {/* Recent Posts */}
         <Card>
           <SectionTitle action={
-            <button onClick={() => window.location.href = '/blog'}
+            <button onClick={() => router.push('/blog')}
               style={{ border: 'none', background: 'none', color: 'var(--accent)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
               전체보기 &rarr;
             </button>
@@ -219,7 +221,7 @@ export default function ConsumerDashboard() {
                     </div>
                     <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>
                       {post.published_at ? new Date(post.published_at).toLocaleDateString('ko-KR') : ''}
-                      {post.niche && ` \u00b7 ${post.niche}`}
+                      {post.niche && ` · ${post.niche}`}
                     </div>
                   </div>
                   {post.quality_score != null && (
@@ -249,7 +251,7 @@ export default function ConsumerDashboard() {
             return (
               <div key={ms.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ fontSize: 20, width: 32, textAlign: 'center', opacity: achieved ? 1 : 0.4 }}>
-                  {achieved ? '\u2705' : ms.icon}</div>
+                  {achieved ? '✅' : ms.icon}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: achieved ? 'var(--green)' : 'var(--text)' }}>
@@ -280,7 +282,7 @@ export default function ConsumerDashboard() {
                 Golden Mode, 고급 분석, 일 20편 발행, 맞춤 스케줄
               </div>
             </div>
-            <ActionButton onClick={() => window.location.href = '/upgrade'} style={{ whiteSpace: 'nowrap' }}>
+            <ActionButton onClick={() => router.push('/upgrade')} style={{ whiteSpace: 'nowrap' }}>
               업그레이드
             </ActionButton>
           </div>
@@ -293,8 +295,8 @@ export default function ConsumerDashboard() {
 // ── Helpers ──
 
 function fmtKRW(n) {
-  if (n >= 10000) return `\u20a9${(n / 10000).toFixed(1)}만`;
-  return `\u20a9${(n || 0).toLocaleString('ko-KR')}`;
+  if (n >= 10000) return `₩${(n / 10000).toFixed(1)}만`;
+  return `₩${(n || 0).toLocaleString('ko-KR')}`;
 }
 
 function getPrevMonthStart() {
