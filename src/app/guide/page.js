@@ -356,7 +356,7 @@ function SignupStep() {
 
       <h3 style={s.h3}>가입 방법</h3>
       <StepList steps={[
-        <span key="1">브라우저에서 <strong>30daysliving.com/login</strong> 접속</span>,
+        <span key="1">브라우저에서 <strong>wp-auto.vercel.app/login</strong> 접속</span>,
         '"회원가입" 탭 클릭',
         '이름(닉네임), 이메일, 비밀번호(6자 이상) 입력',
         '"회원가입" 버튼 클릭',
