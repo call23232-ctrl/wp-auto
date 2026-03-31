@@ -49,4 +49,8 @@ body {
   .consumer-mobile-header { display: flex !important; }
   .consumer-main { margin-left: 0 !important; padding: 16px !important; padding-top: 72px !important; }
   .grid-responsive { grid-template-columns: 1fr !important; }
+  /* Manual page responsive */
+  .manual-sidebar { display: none !important; }
+  .manual-mobile-nav { display: block !important; }
+  .manual-main { padding: 16px !important; }
 }

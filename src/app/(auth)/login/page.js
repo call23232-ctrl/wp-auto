@@ -38,7 +38,7 @@ export default function LoginPage() {
       const msg = err.message || '오류가 발생했습니다';
       const messages = {
         'Invalid login credentials': '이메일 또는 비밀번호가 올바르지 않습니다',
-        'Email not confirmed': '이메일 인증이 완료되지 않았습니다. 메일함을 확인해주세요.',
+        'Email not confirmed': '이메일 인증이 필요합니다. 관리자에게 문의해주세요.',
         'User already registered': '이미 가입된 이메일입니다',
         'Password should be at least 6 characters': '비밀번호는 6자 이상이어야 합니다',
         'Signups not allowed for this instance': '회원가입이 비활성화되어 있습니다',
@@ -148,6 +148,10 @@ export default function LoginPage() {
         처음이신가요?{' '}
         <a href="/guide" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
           시작 가이드 보기
+        </a>
+        {' | '}
+        <a href="/manual" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
+          셀프 호스팅 매뉴얼
         </a>
       </div>
     </div>
