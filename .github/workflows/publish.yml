@@ -87,7 +87,7 @@ jobs:
             NICHE=""
           fi
 
-          ARGS="--all-sites --count $COUNT --pipeline $PIPELINE"
+          ARGS="--all-sites --count $COUNT --pipeline $PIPELINE --golden"
           if [ "$DRY_RUN" = "true" ]; then
             ARGS="$ARGS --dry-run"
           fi
