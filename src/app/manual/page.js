@@ -195,7 +195,7 @@ function OverviewStep() {
           </tr>
         </thead>
         <tbody>
-          <tr><td style={s.td}>Cloudways 호스팅</td><td style={s.td}>$14/월 (~19,000원)</td><td style={s.td}>3일 무료 체험</td></tr>
+          <tr><td style={s.td}>Cloudways 호스팅</td><td style={s.td}>$11/월 (~15,000원)</td><td style={s.td}>3일 무료 체험, 1GB 서버</td></tr>
           <tr><td style={s.td}>도메인</td><td style={s.td}>연 1~2만원</td><td style={s.td}>이미 구매했다면 OK</td></tr>
           <tr><td style={s.td}>Gemini API</td><td style={s.td}>무료 (일 1,500회)</td><td style={s.td}>Google AI Studio에서 발급</td></tr>
           <tr><td style={s.td}>GitHub 계정</td><td style={s.td}>무료</td><td style={s.td}>Actions 2,000분/월 무료</td></tr>
@@ -205,10 +205,11 @@ function OverviewStep() {
       </table>
 
       <div style={s.tipBox}>
-        <div style={s.tipTitle}>월 총 비용: 약 19,000원 (호스팅비만)</div>
+        <div style={s.tipTitle}>월 총 비용: 약 15,000원 (호스팅비만)</div>
         <p style={s.tipText}>
           Gemini API, GitHub, Supabase, Vercel 모두 무료 티어로 충분합니다.
-          실질적으로 Cloudways 호스팅비만 필요합니다.
+          실질적으로 Cloudways 호스팅비($11)만 필요합니다.
+          $11 플랜(1GB)은 블로그 1개 운영에 최적입니다.
         </p>
       </div>
 
@@ -244,12 +245,21 @@ function CloudwaysStep() {
       <h3 style={s.h3}>2. 서버 생성</h3>
       <StepList steps={[
         '로그인 후 "Add Server" 클릭',
-        'Application: WordPress 선택',
+        'Application: WordPress (Lightning Stack) 선택',
         'Server Provider: DigitalOcean 선택',
-        'Server Size: 1GB ($14/월) — 블로그에 충분합니다',
+        'Server Size: 1GB ($11/월) — 블로그 1개 운영에 충분합니다',
         'Location: Singapore 선택 (한국에서 가장 빠름)',
         '"Launch Now" 클릭 → 2~3분 후 서버 완성!',
       ]} />
+
+      <div style={s.tipBox}>
+        <div style={s.tipTitle}>왜 Lightning Stack인가요?</div>
+        <p style={s.tipText}>
+          Lightning Stack은 Nginx + Varnish + Memcached 조합으로, 일반 스택보다 페이지 로딩이 2~3배 빠릅니다.
+          1GB 서버에서도 충분한 성능을 내려면 Lightning Stack이 필수입니다.
+          $11 플랜은 블로그 1개 전용으로 사용하세요.
+        </p>
+      </div>
 
       <div style={s.warnBox}>
         <strong>이 정보를 메모하세요!</strong>
@@ -874,7 +884,7 @@ function FaqStep() {
     },
     {
       q: '월 비용이 얼마인가요?',
-      a: 'Cloudways 호스팅비 약 19,000원($14)/월이 전부입니다. Gemini API, GitHub, Supabase, Vercel 모두 무료입니다.',
+      a: 'Cloudways 호스팅비 약 15,000원($11)/월이 전부입니다. Gemini API, GitHub, Supabase, Vercel 모두 무료입니다.',
     },
     {
       q: '글 품질은 어떤가요?',

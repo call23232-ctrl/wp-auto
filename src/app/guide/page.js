@@ -193,7 +193,7 @@ function HostingStep() {
           Cloudways 시작하기 (3일 무료 체험)
         </a>
         <p style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 8, textAlign: 'center' }}>
-          월 $14부터 시작 / 신용카드 없이 3일 체험 가능
+          월 $11부터 시작 / 신용카드 없이 3일 체험 가능
         </p>
       </div>
 
@@ -208,9 +208,9 @@ function HostingStep() {
       <h3 style={s.h3}>서버 생성하기</h3>
       <StepList steps={[
         '로그인 후 "Add Server" 클릭',
-        'Application: WordPress 선택',
+        'Application: WordPress (Lightning Stack) 선택',
         'Server: DigitalOcean 선택 (가장 저렴)',
-        'Server Size: 1GB ($14/월) 선택 — 블로그에 충분합니다',
+        'Server Size: 1GB ($11/월) 선택 — 블로그 1개 운영에 충분합니다',
         'Location: Singapore 선택 (한국에서 가장 빠름)',
         '"Launch Now" 클릭 → 2~3분 후 서버 완성!',
       ]} />
