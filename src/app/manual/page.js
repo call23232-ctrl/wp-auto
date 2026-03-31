@@ -245,7 +245,8 @@ function CloudwaysStep() {
       <h3 style={s.h3}>2. 서버 생성</h3>
       <StepList steps={[
         '로그인 후 "Add Server" 클릭',
-        'Application: WordPress (Lightning Stack) 선택',
+        'Application: WordPress 선택 (자동으로 Optimized WordPress + Breeze 캐시 포함)',
+        'Application Stack: Lightning Stack 선택',
         'Server Provider: DigitalOcean 선택',
         'Server Size: 1GB ($11/월) — 블로그 1개 운영에 충분합니다',
         'Location: Singapore 선택 (한국에서 가장 빠름)',
@@ -325,7 +326,7 @@ function CloudwaysStep() {
         <tbody>
           <tr><td style={s.td}>Yoast SEO</td><td style={s.td}>검색엔진 최적화 (강력 추천)</td></tr>
           <tr><td style={s.td}>Site Kit by Google</td><td style={s.td}>애드센스/GA 연동</td></tr>
-          <tr><td style={s.td}>WP Super Cache</td><td style={s.td}>사이트 속도 향상</td></tr>
+          <tr><td style={s.td}>Breeze (기본 설치됨)</td><td style={s.td}>캐싱 — Cloudways 기본 포함, 설정만 확인</td></tr>
         </tbody>
       </table>
     </div>
