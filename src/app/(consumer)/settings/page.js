@@ -392,40 +392,28 @@ export default function SettingsPage() {
         </div>
       </Card>
 
-      {/* ── STEP 1: Site Connection ── */}
-      <Card style={{ marginBottom: 20 }}>
-        <SectionTitle action={
-          /* Connected: show compact with edit option */
-          site && siteMode === 'view' ? (
-            <button onClick={startEdit}
-              style={{ border: 'none', background: 'none', color: 'var(--text-dim)', fontSize: 11, cursor: 'pointer' }}>
-              변경
-            </button>
-          ) : null
-        }>
-          STEP 1 &mdash; 사이트 연결
-        </SectionTitle>
-
-        {/* Connected — collapsed summary */}
-        {site && siteMode === 'view' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0' }}>
-            <StepBadge num={1} done={true} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {site.domain || site.name}
-              </div>
-              <div style={{ fontSize: 11, color: 'var(--green)' }}>
-                {'\u2705'} 연결됨 &middot; {site.config?.wp_username || ''}
-              </div>
-            </div>
-            {site.domain && (
-              <a href={`https://${site.domain}`} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none', flexShrink: 0 }}>
-                방문 {'\u2197'}
-              </a>
-            )}
+      {/* ── STEP 1: Site Connection — connected = inline bar, not a card ── */}
+      {site && siteMode === 'view' ? (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          marginBottom: 20, padding: '10px 16px', borderRadius: 10,
+          background: 'var(--green-bg)', border: '1px solid rgba(16,185,129,0.15)',
+        }}>
+          <StepBadge num={1} done={true} />
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {site.domain || site.name}
           </div>
-        )}
+          <span style={{ fontSize: 11, color: 'var(--green)', flexShrink: 0 }}>
+            {'\u2705'} 연결됨
+          </span>
+          <button onClick={startEdit}
+            style={{ border: 'none', background: 'none', color: 'var(--text-dim)', fontSize: 11, cursor: 'pointer', flexShrink: 0 }}>
+            변경
+          </button>
+        </div>
+      ) : (
+      <Card style={{ marginBottom: 20 }}>
+        <SectionTitle>STEP 1 &mdash; 사이트 연결</SectionTitle>
 
         {/* Register / Edit form */}
         {(siteMode === 'register' || siteMode === 'edit') && (
@@ -510,6 +498,7 @@ export default function SettingsPage() {
           </div>
         )}
       </Card>
+      )}
 
       {/* ── STEP 2: WordPress Setup ── */}
       <Card style={{ marginBottom: 20, opacity: siteConnected ? 1 : 0.5, pointerEvents: siteConnected ? 'auto' : 'none' }}>
