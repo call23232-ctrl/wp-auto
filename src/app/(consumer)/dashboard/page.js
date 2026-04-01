@@ -11,11 +11,11 @@ export default function ConsumerDashboard() {
   const router = useRouter();
   const { displayName, monetizationStage } = useCurrentUser();
   const { plan, planId, isPremiumOrAbove } = usePlanFeatures();
-  const { sites } = useUserSites();
+  const { activeSite } = useUserSites();
   const { isAchieved } = useMilestones();
 
-  const siteId = sites[0]?.id;
-  const siteName = sites[0]?.name || sites[0]?.domain || '';
+  const siteId = activeSite?.id;
+  const siteName = activeSite?.name || activeSite?.domain || '';
 
   const [todayStats, setTodayStats] = useState({ posts: 0, failures: 0, cost: 0 });
   const [monthRevenue, setMonthRevenue] = useState(0);

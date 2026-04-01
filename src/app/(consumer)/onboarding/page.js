@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { CONSUMER_CATEGORIES } from '@/lib/plan-features';
@@ -27,6 +27,8 @@ const TOTAL_STEPS = 5;
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isAddSiteMode = searchParams.get('addSite') === 'true';
   const { user, refreshProfile } = useAuth();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -121,17 +123,24 @@ export default function OnboardingPage() {
             monetization_stage: getStageFromBlogStage(blogStage),
           },
         });
+
+        // Set as active site in localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('activeSiteId', site.id);
+        }
       }
 
-      // Mark onboarding complete
-      await supabase.from('user_profiles').update({
-        onboarding_completed: true,
-        onboarding_step: TOTAL_STEPS,
-        monetization_stage: getStageFromBlogStage(blogStage),
-      }).eq('id', user.id);
+      if (!isAddSiteMode) {
+        // First-time onboarding: mark complete
+        await supabase.from('user_profiles').update({
+          onboarding_completed: true,
+          onboarding_step: TOTAL_STEPS,
+          monetization_stage: getStageFromBlogStage(blogStage),
+        }).eq('id', user.id);
+      }
 
       refreshProfile();
-      router.push('/dashboard');
+      router.push(isAddSiteMode ? '/settings' : '/dashboard');
     } catch (err) {
       console.error('Onboarding error:', err);
     } finally {
@@ -164,6 +173,11 @@ export default function OnboardingPage() {
         ))}
       </div>
       <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-dim)', marginBottom: 24 }}>
+        {isAddSiteMode && (
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent)', marginBottom: 8 }}>
+            {'+'} 새 사이트 추가
+          </div>
+        )}
         {step} / {TOTAL_STEPS}
       </div>
 

@@ -23,8 +23,8 @@ export default function RevenuePage() {
   const router = useRouter();
   const { monetizationStage } = useCurrentUser();
   const { isPremiumOrAbove } = usePlanFeatures();
-  const { sites } = useUserSites();
-  const siteId = sites[0]?.id;
+  const { activeSite } = useUserSites();
+  const siteId = activeSite?.id;
 
   const [revenueData, setRevenueData] = useState([]);
   const [monthTotal, setMonthTotal] = useState(0);

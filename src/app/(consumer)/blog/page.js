@@ -15,9 +15,9 @@ const FILTERS = [
 
 export default function BlogPage() {
   const router = useRouter();
-  const { sites } = useUserSites();
+  const { sites, activeSite } = useUserSites();
   const { isPremiumOrAbove } = usePlanFeatures();
-  const siteId = sites[0]?.id;
+  const siteId = activeSite?.id;
 
   const [posts, setPosts] = useState([]);
   const [filter, setFilter] = useState('all');
@@ -146,7 +146,7 @@ export default function BlogPage() {
                         color={post.quality_score >= 90 ? 'green' : post.quality_score >= 80 ? 'yellow' : 'red'} />
                     )}
                     {post.wp_post_id && (
-                      <a href={`https://${sites[0]?.domain || ''}/?p=${post.wp_post_id}`} target="_blank" rel="noopener noreferrer"
+                      <a href={`https://${activeSite?.domain || ''}/?p=${post.wp_post_id}`} target="_blank" rel="noopener noreferrer"
                         style={{ fontSize: 11, color: 'var(--accent)', textDecoration: 'none' }}>
                         {'↗'}
                       </a>

@@ -94,23 +94,47 @@ export function usePlanFeatures() {
 export function useUserSites() {
   const { user } = useAuth();
   const [sites, setSites] = useState([]);
+  const [activeSiteId, setActiveSiteId] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('activeSiteId');
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchSites = useCallback(async () => {
     if (!user) { setSites([]); setLoading(false); return; }
 
-    async function fetch() {
-      const { data } = await supabase
-        .from('user_sites')
-        .select('*, sites(*)')
-        .eq('user_id', user.id);
-      setSites((data || []).map(us => us.sites));
-      setLoading(false);
-    }
-    fetch();
-  }, [user]);
+    const { data } = await supabase
+      .from('user_sites')
+      .select('*, sites(*)')
+      .eq('user_id', user.id);
+    const siteList = (data || []).map(us => us.sites).filter(Boolean);
+    setSites(siteList);
 
-  return { sites, loading };
+    // Auto-select if stored ID doesn't match any site
+    if (siteList.length > 0 && !siteList.find(s => s.id === activeSiteId)) {
+      const defaultId = siteList[0].id;
+      setActiveSiteId(defaultId);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('activeSiteId', defaultId);
+      }
+    }
+    setLoading(false);
+  }, [user, activeSiteId]);
+
+  useEffect(() => { fetchSites(); }, [fetchSites]);
+
+  const setActiveSite = useCallback((siteId) => {
+    setActiveSiteId(siteId);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('activeSiteId', siteId);
+    }
+  }, []);
+
+  const activeSite = sites.find(s => s.id === activeSiteId) || sites[0] || null;
+
+  return { sites, activeSite, setActiveSite, refreshSites: fetchSites, loading };
 }
 
 export function useMilestones() {
