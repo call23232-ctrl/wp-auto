@@ -9,25 +9,19 @@ const REQUIRED_SECRETS = [
     name: 'WP_URL',
     desc: 'WordPress 사이트 주소',
     example: 'https://myblog.com',
-    source: '본인 호스팅',
-    link: null,
-    badge: 'red',
+    how: '본인 호스팅 주소 그대로 입력',
   },
   {
     name: 'WP_USERNAME',
     desc: 'WordPress 관리자 아이디',
     example: 'admin',
-    source: 'WP 설치 시 설정한 값',
-    link: null,
-    badge: 'red',
+    how: 'WP 설치 시 설정한 로그인 ID',
   },
   {
     name: 'WP_APP_PASSWORD',
     desc: 'WordPress Application Password',
     example: 'ABCD 1234 EFGH 5678',
-    source: 'WP 관리자 > Users > Profile',
-    link: null,
-    badge: 'red',
+    how: '아래 2번 섹션 참고',
   },
 ];
 
@@ -37,7 +31,7 @@ const AI_MODEL_SECRETS = [
     desc: 'Google Gemini',
     cost: '무료 (일 1,000건)',
     link: 'https://aistudio.google.com/apikey',
-    linkLabel: 'aistudio.google.com',
+    linkLabel: 'API 키 발급',
     recommended: true,
   },
   {
@@ -45,45 +39,45 @@ const AI_MODEL_SECRETS = [
     desc: 'xAI Grok',
     cost: '무료 크레딧 $25',
     link: 'https://console.x.ai',
-    linkLabel: 'console.x.ai',
+    linkLabel: 'API 키 발급',
   },
   {
     name: 'DEEPSEEK_API_KEY',
     desc: 'DeepSeek',
     cost: '$0.07/MTok',
-    link: 'https://platform.deepseek.com',
-    linkLabel: 'platform.deepseek.com',
+    link: 'https://platform.deepseek.com/api_keys',
+    linkLabel: 'API 키 발급',
   },
   {
     name: 'CLAUDE_API_KEY',
     desc: 'Anthropic Claude (폴리싱용)',
     cost: '$1/MTok',
-    link: 'https://console.anthropic.com',
-    linkLabel: 'console.anthropic.com',
+    link: 'https://console.anthropic.com/settings/keys',
+    linkLabel: 'API 키 발급',
   },
 ];
 
 const IMAGE_SECRETS = [
   {
     name: 'UNSPLASH_ACCESS_KEY',
-    desc: 'Unsplash 이미지',
+    desc: 'Unsplash',
     cost: '무료 (월 50건)',
-    link: 'https://unsplash.com/developers',
-    linkLabel: 'unsplash.com/developers',
+    link: 'https://unsplash.com/oauth/applications',
+    linkLabel: '앱 생성',
   },
   {
     name: 'PEXELS_API_KEY',
-    desc: 'Pexels 이미지',
+    desc: 'Pexels',
     cost: '무료 (월 200건)',
-    link: 'https://www.pexels.com/api/',
-    linkLabel: 'pexels.com/api',
+    link: 'https://www.pexels.com/api/new/',
+    linkLabel: 'API 키 발급',
   },
   {
     name: 'PIXABAY_API_KEY',
-    desc: 'Pixabay 이미지',
+    desc: 'Pixabay',
     cost: '무료',
     link: 'https://pixabay.com/api/docs/',
-    linkLabel: 'pixabay.com/api',
+    linkLabel: 'API 키 발급',
   },
 ];
 
@@ -91,16 +85,16 @@ const DASHBOARD_SECRETS = [
   {
     name: 'SUPABASE_URL',
     desc: 'Supabase 프로젝트 URL',
-    source: 'Supabase > Settings > API',
-    link: 'https://supabase.com/dashboard',
-    linkLabel: 'supabase.com',
+    how: 'Settings > API > Project URL',
+    link: 'https://supabase.com/dashboard/project/_/settings/api',
+    linkLabel: 'Supabase 열기',
   },
   {
     name: 'SUPABASE_KEY',
     desc: 'Supabase service_role key',
-    source: 'Supabase > Settings > API',
-    link: 'https://supabase.com/dashboard',
-    linkLabel: 'supabase.com',
+    how: 'Settings > API > service_role',
+    link: 'https://supabase.com/dashboard/project/_/settings/api',
+    linkLabel: 'Supabase 열기',
   },
 ];
 
@@ -131,7 +125,7 @@ export default function SetupGuidePage() {
           Fork 셋업 가이드
         </h1>
         <p style={{ fontSize: 13, color: 'var(--text-dim)', marginTop: 6 }}>
-          Fork 후 자동 발행을 위해 설정해야 하는 항목들
+          Fork 후 자동 발행을 위해 설정해야 하는 항목들 — 각 항목의 버튼을 클릭하면 해당 사이트로 이동합니다
         </p>
       </div>
 
@@ -139,7 +133,7 @@ export default function SetupGuidePage() {
       <Card style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.06), rgba(59,130,246,0.06))', border: '1px solid rgba(124,58,237,0.15)', marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ fontSize: 28 }}>{'4'}</div>
-          <div>
+          <div style={{ flex: 1 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
               최소 4개 Secret만 등록하면 자동 발행 시작
             </div>
@@ -147,193 +141,145 @@ export default function SetupGuidePage() {
               WP_URL + WP_USERNAME + WP_APP_PASSWORD + GEMINI_API_KEY = 비용 0원
             </div>
           </div>
+          <LinkBtn href="https://aistudio.google.com/apikey" label="Gemini 키 발급" />
         </div>
       </Card>
 
       {/* Section Navigation */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 24, flexWrap: 'wrap' }}>
         {SECTIONS.map(sec => (
-          <a
-            key={sec.id}
-            href={`#${sec.id}`}
-            style={{
-              padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600,
-              background: 'var(--card)', border: '1px solid var(--card-border)',
-              color: 'var(--text-secondary)', textDecoration: 'none',
-              transition: 'all 0.15s',
-            }}
-          >
+          <a key={sec.id} href={`#${sec.id}`} style={S.navPill}>
             <span style={{ marginRight: 6, opacity: 0.5 }}>{sec.icon}</span>
             {sec.label}
           </a>
         ))}
       </div>
 
-      {/* ── Section 1: GitHub Secrets ── */}
+      {/* ══════════ Section 1: GitHub Secrets ══════════ */}
       <div id="secrets" style={{ scrollMarginTop: 80 }}>
         <SectionTitle>
           <span>1. GitHub Secrets 설정</span>
         </SectionTitle>
-        <p style={S.desc}>
-          Fork한 저장소 {'>'} <strong>Settings</strong> {'>'} <strong>Secrets and variables</strong> {'>'} <strong>Actions</strong> {'>'} <strong>New repository secret</strong>
-        </p>
 
-        {/* Required */}
+        {/* Direct link to GitHub Secrets page */}
+        <Card style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>GitHub Secrets 설정 페이지로 이동</div>
+            <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 2 }}>
+              Fork한 저장소 {'>'} Settings {'>'} Secrets and variables {'>'} Actions
+            </div>
+          </div>
+          <LinkBtn href="https://github.com/settings/tokens?type=beta" label="GitHub Tokens" />
+        </Card>
+
+        {/* ─ Required ─ */}
         <div style={S.groupHeader}>
           <Badge text="필수" color="red" />
           <span style={S.groupLabel}>이것 없으면 동작 안 함</span>
         </div>
         <Card style={{ marginBottom: 16 }}>
-          <table style={S.table}>
-            <thead>
-              <tr>
-                <th style={S.th}>Secret Name</th>
-                <th style={S.th}>설명</th>
-                <th style={S.th}>발급처</th>
-              </tr>
-            </thead>
-            <tbody>
-              {REQUIRED_SECRETS.map(s => (
-                <tr key={s.name}>
-                  <td style={S.td}>
-                    <SecretName name={s.name} onCopy={copyText} copied={copiedKey === s.name} />
-                  </td>
-                  <td style={S.td}>
-                    <div style={{ fontSize: 13, color: 'var(--text)' }}>{s.desc}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>
-                      예: <code style={S.code}>{s.example}</code>
-                    </div>
-                  </td>
-                  <td style={{ ...S.td, fontSize: 12, color: 'var(--text-dim)' }}>{s.source}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {REQUIRED_SECRETS.map((s, i) => (
+            <div key={s.name} style={{ ...S.row, borderBottom: i < REQUIRED_SECRETS.length - 1 ? '1px solid var(--card-border)' : 'none' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <SecretName name={s.name} onCopy={copyText} copied={copiedKey === s.name} />
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{s.desc}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>
+                  예: <code style={S.code}>{s.example}</code> | {s.how}
+                </div>
+              </div>
+            </div>
+          ))}
         </Card>
 
-        {/* AI Models */}
+        {/* ─ AI Models ─ */}
         <div style={S.groupHeader}>
           <Badge text="AI 모델" color="green" />
-          <span style={S.groupLabel}>최소 1개 필수</span>
+          <span style={S.groupLabel}>최소 1개 필수 — 무료로 시작하려면 Gemini 추천</span>
         </div>
         <Card style={{ marginBottom: 16 }}>
-          <table style={S.table}>
-            <thead>
-              <tr>
-                <th style={S.th}>Secret Name</th>
-                <th style={S.th}>설명</th>
-                <th style={S.th}>비용</th>
-                <th style={S.th}>발급</th>
-              </tr>
-            </thead>
-            <tbody>
-              {AI_MODEL_SECRETS.map(s => (
-                <tr key={s.name}>
-                  <td style={S.td}>
-                    <SecretName name={s.name} onCopy={copyText} copied={copiedKey === s.name} />
-                    {s.recommended && (
-                      <div style={{ marginTop: 4 }}>
-                        <Badge text="추천" color="purple" />
-                      </div>
-                    )}
-                  </td>
-                  <td style={{ ...S.td, fontSize: 13 }}>{s.desc}</td>
-                  <td style={{ ...S.td, fontSize: 12 }}>{s.cost}</td>
-                  <td style={S.td}>
-                    <a href={s.link} target="_blank" rel="noopener noreferrer" style={S.link}>
-                      {s.linkLabel}
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {AI_MODEL_SECRETS.map((s, i) => (
+            <div key={s.name} style={{ ...S.row, borderBottom: i < AI_MODEL_SECRETS.length - 1 ? '1px solid var(--card-border)' : 'none' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <SecretName name={s.name} onCopy={copyText} copied={copiedKey === s.name} />
+                  {s.recommended && <Badge text="추천" color="purple" />}
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{s.desc}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>{s.cost}</div>
+              </div>
+              <LinkBtn href={s.link} label={s.linkLabel} />
+            </div>
+          ))}
           <div style={S.tipBox}>
-            무료로 시작하려면 <strong>GEMINI_API_KEY</strong> 하나만 등록하세요.
-            엔진이 Grok {'>'} Gemini {'>'} DeepSeek {'>'} Claude 순으로 자동 폴백합니다.
+            엔진이 <strong>Grok {'>'} Gemini {'>'} DeepSeek {'>'} Claude</strong> 순으로 자동 폴백합니다.
+            Gemini 하나만 등록해도 충분합니다.
           </div>
         </Card>
 
-        {/* Image APIs */}
+        {/* ─ Image APIs ─ */}
         <div style={S.groupHeader}>
           <Badge text="이미지 API" color="blue" />
           <span style={S.groupLabel}>선택 — 없으면 이미지 없이 발행</span>
         </div>
         <Card style={{ marginBottom: 16 }}>
-          <table style={S.table}>
-            <thead>
-              <tr>
-                <th style={S.th}>Secret Name</th>
-                <th style={S.th}>비용</th>
-                <th style={S.th}>발급</th>
-              </tr>
-            </thead>
-            <tbody>
-              {IMAGE_SECRETS.map(s => (
-                <tr key={s.name}>
-                  <td style={S.td}>
-                    <SecretName name={s.name} onCopy={copyText} copied={copiedKey === s.name} />
-                  </td>
-                  <td style={{ ...S.td, fontSize: 12 }}>{s.cost}</td>
-                  <td style={S.td}>
-                    <a href={s.link} target="_blank" rel="noopener noreferrer" style={S.link}>
-                      {s.linkLabel}
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {IMAGE_SECRETS.map((s, i) => (
+            <div key={s.name} style={{ ...S.row, borderBottom: i < IMAGE_SECRETS.length - 1 ? '1px solid var(--card-border)' : 'none' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <SecretName name={s.name} onCopy={copyText} copied={copiedKey === s.name} />
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{s.desc} <span style={{ color: 'var(--text-dim)' }}>({s.cost})</span></div>
+              </div>
+              <LinkBtn href={s.link} label={s.linkLabel} />
+            </div>
+          ))}
         </Card>
 
-        {/* Dashboard */}
+        {/* ─ Dashboard ─ */}
         <div style={S.groupHeader}>
           <Badge text="대시보드 연동" color="purple" />
-          <span style={S.groupLabel}>선택 — 대시보드에서 발행 기록 조회 시 필요</span>
+          <span style={S.groupLabel}>선택 — 발행 기록 조회 시 필요</span>
         </div>
         <Card style={{ marginBottom: 28 }}>
-          <table style={S.table}>
-            <thead>
-              <tr>
-                <th style={S.th}>Secret Name</th>
-                <th style={S.th}>설명</th>
-                <th style={S.th}>발급</th>
-              </tr>
-            </thead>
-            <tbody>
-              {DASHBOARD_SECRETS.map(s => (
-                <tr key={s.name}>
-                  <td style={S.td}>
-                    <SecretName name={s.name} onCopy={copyText} copied={copiedKey === s.name} />
-                  </td>
-                  <td style={{ ...S.td, fontSize: 12, color: 'var(--text-dim)' }}>{s.desc}</td>
-                  <td style={S.td}>
-                    <a href={s.link} target="_blank" rel="noopener noreferrer" style={S.link}>
-                      {s.linkLabel}
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {DASHBOARD_SECRETS.map((s, i) => (
+            <div key={s.name} style={{ ...S.row, borderBottom: i < DASHBOARD_SECRETS.length - 1 ? '1px solid var(--card-border)' : 'none' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <SecretName name={s.name} onCopy={copyText} copied={copiedKey === s.name} />
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{s.desc}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>{s.how}</div>
+              </div>
+              <LinkBtn href={s.link} label={s.linkLabel} />
+            </div>
+          ))}
         </Card>
       </div>
 
-      {/* ── Section 2: WP App Password ── */}
+      {/* ══════════ Section 2: WP App Password ══════════ */}
       <div id="wp-password" style={{ scrollMarginTop: 80 }}>
         <SectionTitle>
           <span>2. WordPress Application Password 생성</span>
         </SectionTitle>
         <Card style={{ marginBottom: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+              WP 관리자 패널에서 앱 비밀번호를 생성합니다
+            </div>
+            <LinkBtn href="https://wordpress.org/documentation/article/application-passwords/" label="WP 공식 문서" />
+          </div>
+
           <ol style={S.ol}>
             <li style={S.olLi}>
-              <code style={S.codeInline}>https://내사이트.com/wp-admin</code> 접속
+              <code style={S.codeInline}>https://내사이트.com/wp-admin</code> 접속 후 로그인
             </li>
             <li style={S.olLi}>
-              좌측 <strong>Users</strong> {'>'} <strong>Profile</strong>
+              좌측 <strong>Users</strong> {'>'} <strong>Profile</strong> 클릭
             </li>
             <li style={S.olLi}>
-              맨 아래 <strong>Application Passwords</strong> 섹션
+              맨 아래 <strong>Application Passwords</strong> 섹션으로 스크롤
             </li>
             <li style={S.olLi}>
               이름: <code style={S.codeInline}>AutoBot</code> 입력 {'>'} <strong>Add New Application Password</strong> 클릭
@@ -357,19 +303,26 @@ export default function SetupGuidePage() {
             <strong>앱 비밀번호가 안 보인다면?</strong>
             <ul style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 12 }}>
               <li>WordPress 5.6 이상인지 확인</li>
-              <li>HTTPS가 적용되어 있는지 확인</li>
+              <li>HTTPS가 적용되어 있는지 확인 (http에서는 앱 비밀번호 미지원)</li>
               <li>보안 플러그인(Wordfence 등)이 비활성화하고 있지 않은지 확인</li>
             </ul>
           </div>
         </Card>
       </div>
 
-      {/* ── Section 3: GitHub Actions Permission ── */}
+      {/* ══════════ Section 3: GitHub Actions Permission ══════════ */}
       <div id="actions" style={{ scrollMarginTop: 80 }}>
         <SectionTitle>
           <span>3. GitHub Actions 권한 설정</span>
         </SectionTitle>
         <Card style={{ marginBottom: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+              Actions가 키워드 기록을 커밋할 수 있도록 쓰기 권한이 필요합니다
+            </div>
+            <LinkBtn href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#configuring-the-default-github_token-permissions" label="GitHub 공식 문서" />
+          </div>
+
           <ol style={S.ol}>
             <li style={S.olLi}>
               Fork한 저장소 {'>'} <strong>Settings</strong> 탭
@@ -378,7 +331,8 @@ export default function SetupGuidePage() {
               좌측 <strong>Actions</strong> {'>'} <strong>General</strong>
             </li>
             <li style={S.olLi}>
-              <strong>Workflow permissions</strong> 섹션에서 <strong>"Read and write permissions"</strong> 선택
+              <strong>Workflow permissions</strong> 섹션에서{' '}
+              <Badge text="Read and write permissions" color="green" /> 선택
             </li>
             <li style={S.olLi}>
               <strong>Save</strong> 클릭
@@ -396,15 +350,20 @@ export default function SetupGuidePage() {
         </Card>
       </div>
 
-      {/* ── Section 4: Keywords ── */}
+      {/* ══════════ Section 4: Keywords ══════════ */}
       <div id="keywords" style={{ scrollMarginTop: 80 }}>
         <SectionTitle>
           <span>4. 키워드 설정</span>
         </SectionTitle>
         <Card style={{ marginBottom: 28 }}>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 12px' }}>
-            <code style={S.codeInline}>data/keywords.json</code> 파일을 편집해서 본인 니치에 맞는 키워드를 추가합니다.
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                <code style={S.codeInline}>data/keywords.json</code> 파일을 편집해서 본인 니치에 맞는 키워드를 추가합니다
+              </div>
+            </div>
+            <LinkBtn href="https://github.com/planxs-ai/wp-auto/edit/main/data/keywords.json" label="GitHub에서 편집" />
+          </div>
 
           <div style={S.codeBlock}>
             <div style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 8 }}>data/keywords.json 형식</div>
@@ -436,26 +395,10 @@ export default function SetupGuidePage() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td style={{ ...S.td, fontWeight: 600 }}>type</td>
-                  <td style={S.td}><code style={S.code}>traffic</code></td>
-                  <td style={S.td}>검색량 높은 정보성 키워드</td>
-                </tr>
-                <tr>
-                  <td style={{ ...S.td, fontWeight: 600 }}>type</td>
-                  <td style={S.td}><code style={S.code}>conversion</code></td>
-                  <td style={S.td}>구매 의도 높은 전환 키워드</td>
-                </tr>
-                <tr>
-                  <td style={{ ...S.td, fontWeight: 600 }}>type</td>
-                  <td style={S.td}><code style={S.code}>high_cpa</code></td>
-                  <td style={S.td}>CPA 단가 높은 금융/보험 키워드</td>
-                </tr>
-                <tr>
-                  <td style={{ ...S.td, fontWeight: 600 }}>pipeline</td>
-                  <td style={S.td}><code style={S.code}>autoblog</code></td>
-                  <td style={S.td}>기본 발행 파이프라인</td>
-                </tr>
+                <tr><td style={{ ...S.td, fontWeight: 600 }}>type</td><td style={S.td}><code style={S.code}>traffic</code></td><td style={S.td}>검색량 높은 정보성 키워드</td></tr>
+                <tr><td style={{ ...S.td, fontWeight: 600 }}>type</td><td style={S.td}><code style={S.code}>conversion</code></td><td style={S.td}>구매 의도 높은 전환 키워드</td></tr>
+                <tr><td style={{ ...S.td, fontWeight: 600 }}>type</td><td style={S.td}><code style={S.code}>high_cpa</code></td><td style={S.td}>CPA 단가 높은 금융/보험 키워드</td></tr>
+                <tr><td style={{ ...S.td, fontWeight: 600 }}>pipeline</td><td style={S.td}><code style={S.code}>autoblog</code></td><td style={S.td}>기본 발행 파이프라인</td></tr>
               </tbody>
             </table>
           </div>
@@ -470,7 +413,7 @@ export default function SetupGuidePage() {
         </Card>
       </div>
 
-      {/* ── Section 5: Summary ── */}
+      {/* ══════════ Section 5: Summary ══════════ */}
       <div id="summary" style={{ scrollMarginTop: 80 }}>
         <SectionTitle>
           <span>최소 구성 요약</span>
@@ -486,9 +429,27 @@ export default function SetupGuidePage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <StepRow num="1" title="GitHub Secrets 4개 등록" desc="WP_URL + WP_USERNAME + WP_APP_PASSWORD + GEMINI_API_KEY" done={false} />
-            <StepRow num="2" title="Actions 쓰기 권한 활성화" desc="Settings > Actions > General > Read and write" done={false} />
-            <StepRow num="3" title="Actions 탭에서 수동 실행" desc='Auto Publish 워크플로우 > "Run workflow" 클릭' done={false} />
+            <StepRow
+              num="1"
+              title="GitHub Secrets 4개 등록"
+              desc="WP_URL + WP_USERNAME + WP_APP_PASSWORD + GEMINI_API_KEY"
+              linkHref="https://aistudio.google.com/apikey"
+              linkLabel="Gemini 키 받기"
+            />
+            <StepRow
+              num="2"
+              title="Actions 쓰기 권한 활성화"
+              desc="Settings > Actions > General > Read and write"
+              linkHref="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository"
+              linkLabel="GitHub 문서"
+            />
+            <StepRow
+              num="3"
+              title="Actions 탭에서 수동 실행"
+              desc='Auto Publish 워크플로우 > "Run workflow" 클릭'
+              linkHref="https://github.com/planxs-ai/wp-auto/actions"
+              linkLabel="Actions 열기"
+            />
           </div>
 
           <div style={{
@@ -510,20 +471,21 @@ export default function SetupGuidePage() {
             전체 셋업 체크리스트
           </div>
           <CheckGroup title="필수 (발행 동작에 필요)" color="var(--red)" items={[
-            { label: 'WP_URL — WordPress 사이트 주소', link: null },
-            { label: 'WP_USERNAME — WordPress 관리자 ID', link: null },
-            { label: 'WP_APP_PASSWORD — 앱 비밀번호', link: null },
-            { label: 'AI API 키 최소 1개 (GEMINI_API_KEY 추천)', link: 'https://aistudio.google.com/apikey' },
-            { label: 'Actions 쓰기 권한 (Read and write permissions)', link: null },
+            { label: 'WP_URL — WordPress 사이트 주소' },
+            { label: 'WP_USERNAME — WordPress 관리자 ID' },
+            { label: 'WP_APP_PASSWORD — 앱 비밀번호', link: 'https://wordpress.org/documentation/article/application-passwords/', linkText: 'WP 문서' },
+            { label: 'AI API 키 최소 1개 (GEMINI 추천)', link: 'https://aistudio.google.com/apikey', linkText: '발급' },
+            { label: 'Actions 쓰기 권한 활성화' },
           ]} />
           <CheckGroup title="권장 (대시보드 연동)" color="var(--accent)" items={[
-            { label: 'SUPABASE_URL — 발행 기록 저장', link: 'https://supabase.com/dashboard' },
-            { label: 'SUPABASE_KEY — 서비스 역할 키', link: 'https://supabase.com/dashboard' },
+            { label: 'SUPABASE_URL — 발행 기록 저장', link: 'https://supabase.com/dashboard', linkText: 'Supabase' },
+            { label: 'SUPABASE_KEY — 서비스 역할 키', link: 'https://supabase.com/dashboard', linkText: 'Supabase' },
           ]} />
           <CheckGroup title="선택 (품질 향상)" color="var(--blue)" items={[
-            { label: '이미지 API 1개 이상 (PEXELS 추천)', link: 'https://www.pexels.com/api/' },
-            { label: '추가 AI 모델 (다양한 글 스타일)', link: null },
-            { label: '텔레그램 알림 설정', link: 'https://core.telegram.org/bots#botfather' },
+            { label: 'PEXELS_API_KEY — 이미지 자동 삽입', link: 'https://www.pexels.com/api/new/', linkText: '발급' },
+            { label: 'UNSPLASH_ACCESS_KEY — 이미지', link: 'https://unsplash.com/oauth/applications', linkText: '발급' },
+            { label: 'PIXABAY_API_KEY — 이미지', link: 'https://pixabay.com/api/docs/', linkText: '발급' },
+            { label: 'TELEGRAM_BOT_TOKEN — 발행 알림', link: 'https://core.telegram.org/bots#botfather', linkText: 'BotFather' },
           ]} />
         </Card>
       </div>
@@ -537,6 +499,27 @@ export default function SetupGuidePage() {
 }
 
 // ── Sub-components ──
+
+function LinkBtn({ href, label }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: '7px 14px', borderRadius: 8,
+        background: 'var(--accent)', color: '#fff',
+        fontSize: 12, fontWeight: 600, textDecoration: 'none',
+        whiteSpace: 'nowrap', transition: 'opacity 0.15s',
+        flexShrink: 0,
+      }}
+    >
+      {label}
+      <span style={{ fontSize: 14 }}>{'\u2197'}</span>
+    </a>
+  );
+}
 
 function SecretName({ name, onCopy, copied }) {
   return (
@@ -557,10 +540,10 @@ function SecretName({ name, onCopy, copied }) {
   );
 }
 
-function StepRow({ num, title, desc }) {
+function StepRow({ num, title, desc, linkHref, linkLabel }) {
   return (
     <div style={{
-      display: 'flex', alignItems: 'flex-start', gap: 12,
+      display: 'flex', alignItems: 'center', gap: 12,
       padding: '10px 14px', borderRadius: 10,
       background: 'rgba(255,255,255,0.6)',
     }}>
@@ -571,10 +554,26 @@ function StepRow({ num, title, desc }) {
       }}>
         {num}
       </div>
-      <div>
+      <div style={{ flex: 1 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{title}</div>
         <div style={{ fontSize: 12, color: 'var(--text-dim)', marginTop: 2 }}>{desc}</div>
       </div>
+      {linkHref && (
+        <a
+          href={linkHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            padding: '5px 12px', borderRadius: 6,
+            background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.15)',
+            color: 'var(--accent)', fontSize: 11, fontWeight: 600,
+            textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0,
+          }}
+        >
+          {linkLabel} {'\u2197'}
+        </a>
+      )}
     </div>
   );
 }
@@ -586,9 +585,7 @@ function CheckGroup({ title, color, items }) {
         fontSize: 12, fontWeight: 700, color, marginBottom: 8,
         display: 'flex', alignItems: 'center', gap: 6,
       }}>
-        <span style={{
-          width: 8, height: 8, borderRadius: '50%', background: color,
-        }} />
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
         {title}
       </div>
       {items.map((item, i) => (
@@ -600,9 +597,13 @@ function CheckGroup({ title, color, items }) {
           <span style={{ flex: 1 }}>{item.label}</span>
           {item.link && (
             <a href={item.link} target="_blank" rel="noopener noreferrer" style={{
-              fontSize: 11, color: 'var(--accent)', textDecoration: 'none', flexShrink: 0,
+              display: 'inline-flex', alignItems: 'center', gap: 3,
+              padding: '3px 10px', borderRadius: 6,
+              background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.1)',
+              fontSize: 11, fontWeight: 600, color: 'var(--accent)',
+              textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0,
             }}>
-              발급 {'->'}
+              {item.linkText || '발급'} {'\u2197'}
             </a>
           )}
         </div>
@@ -614,14 +615,21 @@ function CheckGroup({ title, color, items }) {
 // ── Styles ──
 
 const S = {
-  desc: {
-    fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 16px', lineHeight: 1.7,
+  navPill: {
+    padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+    background: 'var(--card)', border: '1px solid var(--card-border)',
+    color: 'var(--text-secondary)', textDecoration: 'none',
+    transition: 'all 0.15s',
   },
   groupHeader: {
     display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8,
   },
   groupLabel: {
     fontSize: 12, color: 'var(--text-dim)', fontWeight: 500,
+  },
+  row: {
+    display: 'flex', alignItems: 'center', gap: 12,
+    padding: '14px 0', flexWrap: 'wrap',
   },
   table: {
     width: '100%', borderCollapse: 'collapse',
@@ -634,10 +642,6 @@ const S = {
   td: {
     padding: '10px 12px', borderBottom: '1px solid var(--card-border)',
     verticalAlign: 'top', fontSize: 13, color: 'var(--text-secondary)',
-  },
-  link: {
-    fontSize: 12, color: 'var(--accent)', textDecoration: 'none', fontWeight: 500,
-    display: 'inline-flex', alignItems: 'center', gap: 4,
   },
   code: {
     background: 'var(--input-bg)', padding: '2px 6px', borderRadius: 4,
