@@ -1922,9 +1922,10 @@ class AdSenseOptimizer:
                     idx = content.index('<h2')
                     content = content[:idx] + toc + content[idx:]
 
-        # 5. 모바일 반응형 CSS 인라인 주입 (WordPress 추가 CSS 접근 불가 시 폴백)
-        if '<style' not in content[:200]:
-            content = INLINE_MOBILE_CSS + "\n" + content
+        # 5. 모바일 반응형 CSS 인라인 주입 — 비활성화 (AdSense 승인 대비)
+        # Customizer 전역 CSS(inject_css.py)로 대체. 인라인 CSS는 Google 품질 신호에 악영향.
+        # if '<style' not in content[:200]:
+        #     content = INLINE_MOBILE_CSS + "\n" + content
 
         return content
 
