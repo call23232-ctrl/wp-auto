@@ -1863,7 +1863,9 @@ INLINE_MOBILE_CSS = """<style>
 .entry-content img { max-width: 100% !important; height: auto !important; border-radius: 8px; }
 .entry-content table { width: 100% !important; display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; border-collapse: collapse; font-size: 14px; }
 .entry-content th, .entry-content td { padding: 10px 12px; border: 1px solid #e2e8f0; }
-.entry-content th { background: #f8fafc; font-weight: 700; }
+.entry-content th { font-weight: 700; }
+.entry-content thead th { color: #fff !important; }
+.entry-content table:not([style*="box-shadow"]) th { background: #f8fafc; color: #1a1a2e; }
 .entry-content blockquote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid #6366f1; background: #f8fafc; border-radius: 0 8px 8px 0; }
 .entry-content .tip-box { padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; margin: 16px 0; }
 .entry-content .key-point { padding: 16px; background: #fefce8; border: 1px solid #fde68a; border-radius: 10px; margin: 16px 0; }

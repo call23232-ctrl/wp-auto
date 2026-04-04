@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 기존 WordPress 글에 모바일 CSS 인라인 주입
-- 이미 <style> 태그가 있는 글은 스킵
-- 글 본문 최상단에 CSS 추가
+- 기본: <style> 태그 없는 글에만 신규 주입
+- --force: 기존 <style> 태그를 최신 CSS로 교체
 """
 import os, sys, base64, re
 
@@ -10,6 +10,7 @@ WP_URL = os.environ.get("WP_URL", "").rstrip("/")
 WP_USER = os.environ.get("WP_USERNAME", "")
 WP_PASS = os.environ.get("WP_APP_PASSWORD", "")
 DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
+FORCE_UPDATE = "--force" in sys.argv
 
 if not all([WP_URL, WP_USER, WP_PASS]):
     print("ERROR: WP_URL, WP_USERNAME, WP_APP_PASSWORD 환경변수 필요")
@@ -32,7 +33,9 @@ INLINE_CSS = """<style>
 .entry-content img { max-width: 100% !important; height: auto !important; border-radius: 8px; }
 .entry-content table { width: 100% !important; display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; border-collapse: collapse; font-size: 14px; }
 .entry-content th, .entry-content td { padding: 10px 12px; border: 1px solid #e2e8f0; }
-.entry-content th { background: #f8fafc; font-weight: 700; }
+.entry-content th { font-weight: 700; }
+.entry-content thead th { color: #fff !important; }
+.entry-content table:not([style*="box-shadow"]) th { background: #f8fafc; color: #1a1a2e; }
 .entry-content blockquote { margin: 16px 0; padding: 16px 20px; border-left: 4px solid #6366f1; background: #f8fafc; border-radius: 0 8px 8px 0; }
 .entry-content .tip-box { padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; margin: 16px 0; }
 .entry-content .key-point { padding: 16px; background: #fefce8; border: 1px solid #fde68a; border-radius: 10px; margin: 16px 0; }
@@ -55,6 +58,12 @@ INLINE_CSS = """<style>
   .entry-content { font-size: 14px; }
 }
 </style>"""
+
+# 기존 <style>...</style> 블록 매칭 (본문 상단)
+OLD_STYLE_PATTERN = re.compile(
+    r'^\s*<style>\s*/\*\s*AutoBlog\s.*?\*/.*?</style>\s*',
+    re.DOTALL | re.IGNORECASE
+)
 
 
 def fetch_all_posts():
@@ -80,24 +89,21 @@ def fetch_all_posts():
 
 
 def main():
+    force_label = " + FORCE UPDATE" if FORCE_UPDATE else ""
     mode = "DRY RUN" if DRY_RUN else "LIVE"
     domain = WP_URL.replace("https://", "").replace("http://", "")
-    print(f"=== 모바일 CSS 인라인 주입 [{mode}] — {domain} ===\n")
+    print(f"=== 모바일 CSS 인라인 주입 [{mode}{force_label}] — {domain} ===\n")
 
     posts = fetch_all_posts()
     print(f"총 {len(posts)}개 글\n")
 
     injected = 0
+    updated = 0
     skipped = 0
 
     for post in posts:
-        content = post.get("content", {}).get("rendered", "")
         title = post.get("title", {}).get("rendered", "")[:50]
         post_id = post["id"]
-
-        if "<style>" in content[:500]:
-            skipped += 1
-            continue
 
         # Raw content 가져오기
         raw_resp = requests.get(
@@ -109,15 +115,26 @@ def main():
             continue
 
         raw_content = raw_resp.json().get("content", {}).get("raw", "")
-        if "<style>" in raw_content[:500]:
+        has_style = "<style>" in raw_content[:500]
+
+        if has_style and not FORCE_UPDATE:
             skipped += 1
             continue
 
-        new_content = INLINE_CSS + "\n" + raw_content
+        if has_style:
+            # --force: 기존 AutoBlog <style> 블록을 최신으로 교체
+            new_content = OLD_STYLE_PATTERN.sub('', raw_content)
+            new_content = INLINE_CSS + "\n" + new_content.lstrip()
+            action = "WOULD UPDATE" if DRY_RUN else "UPDATED"
+            counter = "updated"
+        else:
+            # 신규 주입
+            new_content = INLINE_CSS + "\n" + raw_content
+            action = "WOULD INJECT" if DRY_RUN else "INJECTED"
+            counter = "injected"
 
         if DRY_RUN:
-            print(f"  [{post_id}] WOULD INJECT — {title}")
-            injected += 1
+            print(f"  [{post_id}] {action} — {title}")
         else:
             resp = requests.post(
                 f"{API}/posts/{post_id}",
@@ -126,12 +143,17 @@ def main():
                 timeout=15
             )
             if resp.status_code == 200:
-                print(f"  [{post_id}] INJECTED — {title}")
-                injected += 1
+                print(f"  [{post_id}] {action} — {title}")
             else:
                 print(f"  [{post_id}] FAILED — {resp.status_code}")
+                continue
 
-    print(f"\n=== 결과: {injected} 주입, {skipped} 스킵 (이미 CSS 있음) ===")
+        if counter == "updated":
+            updated += 1
+        else:
+            injected += 1
+
+    print(f"\n=== 결과: {injected} 신규주입, {updated} 업데이트, {skipped} 스킵 ===")
 
 
 if __name__ == "__main__":

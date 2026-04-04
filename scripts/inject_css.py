@@ -62,6 +62,10 @@ body { background: #f8fafc !important; color: #1e293b; line-height: 1.7; }
 .site-content, .content-area, main#main {
   max-width: 1200px !important; margin: 0 auto !important; padding: 32px 16px !important;
 }
+/* GeneratePress 컨테이너 너비 확장 */
+.grid-container { max-width: 1200px !important; }
+body:not(.sidebar) .grid-container { max-width: 1200px !important; }
+.inside-article { max-width: 100% !important; }
 
 /* 카드 레이아웃 */
 .site-main > article, .hentry {
@@ -106,13 +110,17 @@ body { background: #f8fafc !important; color: #1e293b; line-height: 1.7; }
 .more-link:hover { background: #4f46e5 !important; }
 
 /* 단일 글 본문 */
+.single .grid-container { max-width: 1200px !important; }
+.single .inside-article { max-width: 100% !important; padding: 32px 24px !important; }
 .single .entry-content { max-width: 100% !important; margin: 0 auto !important; padding: 0 8px !important; }
 .single .entry-title { font-size: 26px !important; }
 .single .entry-meta { margin-bottom: 24px !important; }
 .entry-content img { max-width: 100% !important; height: auto !important; border-radius: 8px !important; }
 .entry-content table { width: 100% !important; border-collapse: collapse; font-size: 14px !important; }
 .entry-content th, .entry-content td { padding: 10px 12px !important; border: 1px solid #e2e8f0 !important; }
-.entry-content th { background: #f8fafc !important; font-weight: 700 !important; }
+.entry-content th { font-weight: 700 !important; }
+.entry-content thead th { color: #fff !important; }
+.entry-content table:not([style*="box-shadow"]) th { background: #f8fafc !important; color: #1a1a2e !important; }
 
 /* 사이드바 위젯 */
 .widget {

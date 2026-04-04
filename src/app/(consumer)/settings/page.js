@@ -15,9 +15,13 @@ const SETUP_ACTIONS = [
   { id: 'setup-pages', step: 2, label: '필수 페이지 생성',
     desc: 'About, Privacy Policy, 자기소개 등 AdSense 필수 페이지',
     icon: '\uD83D\uDCC4', successMsg: '필수 페이지 생성 완료!' },
-  { id: 'inject-css', step: 3, label: '모바일 CSS 적용',
-    desc: '기존 + 새 글에 모바일 반응형 CSS 자동 주입',
+  { id: 'inject-css', step: 3, label: '테마 CSS 적용',
+    desc: '사이트 전체 테마 CSS 업데이트 (PC 너비 + 반응형)',
     icon: '\uD83C\uDFA8', successMsg: 'CSS 적용 완료!' },
+  { id: 'inject-css-posts', step: 3, label: '기존 글 CSS 업데이트',
+    desc: '기존 글의 인라인 CSS를 최신 버전으로 교체',
+    icon: '\uD83D\uDD04', successMsg: '기존 글 CSS 업데이트 완료!',
+    inputs: { force_update: 'true' } },
   { id: 'publish', step: 4, label: '첫 글 발행',
     desc: 'AI가 선택한 니치로 글을 작성하여 발행',
     icon: '\uD83D\uDCDD', successMsg: '발행 시작!' },
@@ -118,7 +122,8 @@ export default function SettingsPage() {
     () => setupLog.filter(l => l.status === 'success').map(l => l.action),
     [setupLog]
   );
-  const wpSetupDone = SETUP_ACTIONS.every(a => completedSetupIds.includes(a.id));
+  const REQUIRED_SETUP_IDS = ['setup-menu', 'setup-pages', 'inject-css', 'publish'];
+  const wpSetupDone = REQUIRED_SETUP_IDS.every(id => completedSetupIds.includes(id));
   const scheduleConfigured = dailyCount >= 1 && scheduleTimes.length >= dailyCount;
 
   const currentStepComplete = (stepId) => {
