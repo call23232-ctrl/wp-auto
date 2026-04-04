@@ -14,6 +14,15 @@ on:
       site_id:
         description: 'Site ID'
         required: false
+      blog_owner:
+        description: 'Blog owner name'
+        required: false
+      blog_desc:
+        description: 'Blog description'
+        required: false
+      contact_email:
+        description: 'Contact email'
+        required: false
 
 jobs:
   setup:
@@ -22,9 +31,9 @@ jobs:
       WP_URL: ${{ inputs.wp_url || secrets.WP_URL }}
       WP_USERNAME: ${{ inputs.wp_username || secrets.WP_USERNAME }}
       WP_APP_PASSWORD: ${{ inputs.wp_app_password || secrets.WP_APP_PASSWORD }}
-      BLOG_OWNER: ${{ secrets.BLOG_OWNER }}
-      BLOG_DESC: ${{ secrets.BLOG_DESC }}
-      CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+      BLOG_OWNER: ${{ inputs.blog_owner || secrets.BLOG_OWNER }}
+      BLOG_DESC: ${{ inputs.blog_desc || secrets.BLOG_DESC }}
+      CONTACT_EMAIL: ${{ inputs.contact_email || secrets.CONTACT_EMAIL }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       SITE_ID: ${{ inputs.site_id }}

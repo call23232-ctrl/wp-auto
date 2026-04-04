@@ -254,7 +254,31 @@ export default function SettingsPage() {
   const runSetupAction = async (action) => {
     setSetupRunning(prev => ({ ...prev, [action.id]: true }));
     try {
+      // setup-pages 실행 전 사용자 정보를 먼저 저장 (Supabase에 최신 상태 반영)
+      if (action.id === 'setup-pages' && site?.id) {
+        await supabase.from('dashboard_config').upsert({
+          site_id: site.id,
+          config: {
+            ...(config || {}), blog_owner: blogOwner, blog_desc: blogDesc, contact_email: contactEmail,
+          },
+        });
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
+
+      // 액션별 inputs 구성
+      let actionInputs = action.inputs || {};
+      if (action.id === 'publish') {
+        actionInputs = { count: String(firstPostCount) };
+      } else if (action.id === 'setup-pages') {
+        actionInputs = {
+          ...actionInputs,
+          blog_owner: blogOwner || '',
+          blog_desc: blogDesc || '',
+          contact_email: contactEmail || '',
+        };
+      }
+
       const res = await fetch('/api/setup', {
         method: 'POST',
         headers: {
@@ -263,7 +287,7 @@ export default function SettingsPage() {
         },
         body: JSON.stringify({
           action: action.id, siteId: site?.id,
-          inputs: action.id === 'publish' ? { count: String(firstPostCount) } : (action.inputs || {}),
+          inputs: actionInputs,
         }),
       });
       const data = await res.json();
