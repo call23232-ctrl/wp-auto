@@ -55,11 +55,28 @@ KST = timezone(timedelta(hours=9))
 # 1. 키워드 관리
 # ═══════════════════════════════════════════════════════
 class KeywordManager:
-    def __init__(self):
-        self.kw_file = DATA / "keywords.json"
+    def __init__(self, site_id=None):
+        # 사이트별 키워드 파일: keywords_{domain}.json → keywords.json 폴백
+        self.kw_file = self._resolve_kw_file(site_id)
         self.used_file = DATA / "used_keywords.json"
         self.keywords = self._load(self.kw_file, {"keywords": []})
         self.used = self._load(self.used_file, [])
+        log.info(f"  키워드 파일: {self.kw_file.name} ({len(self.keywords.get('keywords', []))}개)")
+
+    def _resolve_kw_file(self, site_id):
+        """사이트별 키워드 파일 탐색: keywords_{도메인}.json → keywords.json"""
+        if site_id:
+            # site_id에서 도메인 추출 시도 (Supabase site_override 기반)
+            # 또는 WP_URL에서 도메인 추출
+            domain = WP_URL.replace("https://", "").replace("http://", "").split("/")[0].replace("www.", "")
+            domain_slug = domain.replace(".", "_").replace("-", "_")  # bomissu.com → bomissu_com
+            # bomissu.com → keywords_bomissu.json 패턴
+            domain_prefix = domain.split(".")[0]  # bomissu
+            for pattern in [f"keywords_{domain_prefix}.json", f"keywords_{domain_slug}.json"]:
+                candidate = DATA / pattern
+                if candidate.exists():
+                    return candidate
+        return DATA / "keywords.json"
 
     def _load(self, path, default):
         if path.exists():
@@ -1922,9 +1939,10 @@ class AdSenseOptimizer:
                     idx = content.index('<h2')
                     content = content[:idx] + toc + content[idx:]
 
-        # 5. 모바일 반응형 CSS 인라인 주입 (WordPress 추가 CSS 접근 불가 시 폴백)
-        if '<style' not in content[:200]:
-            content = INLINE_MOBILE_CSS + "\n" + content
+        # 5. 모바일 반응형 CSS 인라인 주입 — 비활성화 (AdSense 승인 대비)
+        # Customizer 전역 CSS(inject_css.py)로 대체. 인라인 CSS는 Google 품질 신호에 악영향.
+        # if '<style' not in content[:200]:
+        #     content = INLINE_MOBILE_CSS + "\n" + content
 
         return content
 
@@ -3309,7 +3327,7 @@ def run_pipeline(count=5, dry_run=False, pipeline="autoblog", site_override=None
     if not site_override:
         check_api_status()
 
-    km = KeywordManager()
+    km = KeywordManager(site_id=SITE_ID)
     dkg = DynamicKeywordGenerator()
     cg = ContentGenerator()
     cf = ContentFormatter()
