@@ -95,7 +95,8 @@ body:not(.sidebar) .grid-container { max-width: 1400px !important; }
 .single .entry-title { font-size: 26px !important; }
 .single .entry-meta { margin-bottom: 24px !important; }
 .entry-content img { max-width: 100% !important; height: auto !important; border-radius: 8px !important; }
-.entry-content table { width: 100% !important; border-collapse: collapse; font-size: 14px !important; }
+.entry-content table { width: 100% !important; border-collapse: collapse; font-size: 14px !important; display: table !important; table-layout: auto !important; }
+.entry-content h2 { border-bottom: none !important; }
 .entry-content th, .entry-content td { padding: 10px 12px !important; border: 1px solid #e2e8f0 !important; }
 .entry-content th { font-weight: 700 !important; color: #1a1a2e !important; }
 .entry-content thead th { background: #6366f1 !important; color: #fff !important; }
