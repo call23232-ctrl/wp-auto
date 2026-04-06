@@ -43,10 +43,9 @@ WP_PASS = os.environ.get("WP_APP_PASSWORD", "")
 
 # ── 카테고리 slug 맵
 CATEGORY_SLUG_MAP = {
-    "재테크 & 투자":    "finance-invest",
-    "ETF 시장분석":     "etf-analysis",
-    "ETF 전략리포트":   "etf-strategy",
-    "3days 전략리포트": "3days-strategy",
+    "재테크 & 투자":  "finance-invest",
+    "AI 활용 & 도구": "ai-tools",
+    "부업 & 수익화":  "side-hustle",
 }
 
 TARGET_CATEGORY = "재테크 & 투자"   # 기본 적용 카테고리
@@ -166,23 +165,29 @@ def fetch_all_3days_posts() -> list:
 
 def patch_post_category(post_id: int, cat_id: int, existing_cats: list) -> bool:
     """포스트에 카테고리 추가 (기존 카테고리 유지)"""
-    headers = get_headers()
+    hdrs = get_headers()
 
     if cat_id in existing_cats:
         return False  # 이미 적용됨
 
     new_cats = list(set(existing_cats + [cat_id]))
+    payload = {"categories": new_cats}
+    endpoint = f"{WP_URL}/wp-json/wp/v2/posts/{post_id}"
 
-    # WordPress REST API: POST 또는 PATCH 둘 다 지원, 명시적으로 PATCH 사용
-    r = requests.post(
-        f"{WP_URL}/wp-json/wp/v2/posts/{post_id}",
-        headers={**headers, "X-HTTP-Method-Override": "PATCH"},
-        json={"categories": new_cats},
-        timeout=10,
-    )
-    if not r.ok:
-        log.warning(f"    → HTTP {r.status_code}: {r.text[:300]}")
-    return r.ok
+    # 1순위: POST (WordPress REST API 표준)
+    r = requests.post(endpoint, headers=hdrs, json=payload, timeout=10)
+    if r.ok:
+        return True
+
+    log.warning(f"    → POST {r.status_code}: {r.text[:200]}")
+
+    # 2순위: PATCH 폴백 (일부 WP 보안 플러그인 환경)
+    r2 = requests.patch(endpoint, headers=hdrs, json=payload, timeout=10)
+    if r2.ok:
+        return True
+
+    log.warning(f"    → PATCH {r2.status_code}: {r2.text[:200]}")
+    return False
 
 
 def main():

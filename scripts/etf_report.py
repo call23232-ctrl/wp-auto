@@ -611,12 +611,9 @@ def _get_or_create_tags(base_url: str, headers: dict, tag_names: list) -> list:
 
 # ── 카테고리명 → 영문 slug 매핑 (slug 기반 조회가 한국어 URL인코딩 충돌 방지)
 _CATEGORY_SLUG_MAP = {
-    "재테크 & 투자":    "finance-invest",
-    "ETF 시장분석":     "etf-analysis",
-    "ETF 전략리포트":   "etf-strategy",
-    "3days 전략리포트": "3days-strategy",
-    "퀀트 분석":        "quant-analysis",
-    "섹터분석":         "sector-analysis",
+    "재테크 & 투자":  "finance-invest",
+    "AI 활용 & 도구": "ai-tools",
+    "부업 & 수익화":  "side-hustle",
 }
 
 

@@ -1,23 +1,28 @@
 {
   "monetization_stage": 1,
   "_stage_guide": "1=AdSense승인전(어필리에이트0%), 2=승인후(쿠팡20%), 3=본격수익화(쿠팡+텐핑50%)",
+  "_category_map": {
+    "재테크 & 투자": "finance-invest",
+    "AI 활용 & 도구": "ai-tools",
+    "부업 & 수익화": "side-hustle"
+  },
   "keywords": [
-    {"keyword": "AI 글쓰기 도구 추천 2026", "type": "traffic", "intent": "informational", "category": "AI 도구 & 생산성", "pipeline": "autoblog", "slug": "ai-writing-tools-comparison-2026", "focus_keyword": "AI 글쓰기 도구 추천"},
-    {"keyword": "AI 업무 자동화 도구 가이드", "type": "traffic", "intent": "informational", "category": "AI 도구 & 생산성", "pipeline": "autoblog", "slug": "ai-productivity-tools-guide", "focus_keyword": "AI 업무 자동화"},
-    {"keyword": "AI 이미지 생성 도구 비교", "type": "traffic", "intent": "informational", "category": "AI 도구 & 생산성", "pipeline": "autoblog", "slug": "ai-image-generator-comparison", "focus_keyword": "AI 이미지 생성"},
+    {"keyword": "AI 글쓰기 도구 추천 2026", "type": "traffic", "intent": "informational", "category": "AI 활용 & 도구", "pipeline": "autoblog", "slug": "ai-writing-tools-comparison-2026", "focus_keyword": "AI 글쓰기 도구 추천"},
+    {"keyword": "AI 업무 자동화 도구 가이드", "type": "traffic", "intent": "informational", "category": "AI 활용 & 도구", "pipeline": "autoblog", "slug": "ai-productivity-tools-guide", "focus_keyword": "AI 업무 자동화"},
+    {"keyword": "AI 이미지 생성 도구 비교", "type": "traffic", "intent": "informational", "category": "AI 활용 & 도구", "pipeline": "autoblog", "slug": "ai-image-generator-comparison", "focus_keyword": "AI 이미지 생성"},
     {"keyword": "ETF 초보자 입문 가이드 2026", "type": "conversion", "intent": "informational", "category": "재테크 & 투자", "pipeline": "autoblog", "slug": "etf-beginner-guide-2026", "focus_keyword": "ETF 초보자"},
     {"keyword": "직장인 월급 관리법 50-30-20", "type": "traffic", "intent": "informational", "category": "재테크 & 투자", "pipeline": "autoblog", "slug": "salary-management-50-30-20", "focus_keyword": "직장인 월급 관리"},
     {"keyword": "적금 vs ETF vs 예금 비교 2026", "type": "conversion", "intent": "informational", "category": "재테크 & 투자", "pipeline": "autoblog", "slug": "savings-vs-etf-comparison", "focus_keyword": "적금 ETF 비교"},
     {"keyword": "블로그 수익화 방법 완벽 가이드", "type": "traffic", "intent": "informational", "category": "부업 & 수익화", "pipeline": "autoblog", "slug": "blog-monetization-guide", "focus_keyword": "블로그 수익화 방법"},
     {"keyword": "직장인 부업 추천 2026 현실적", "type": "traffic", "intent": "informational", "category": "부업 & 수익화", "pipeline": "autoblog", "slug": "realistic-side-jobs-2026", "focus_keyword": "직장인 부업 추천"},
     {"keyword": "쿠팡 파트너스 수익화 시작 방법", "type": "conversion", "intent": "transactional", "category": "부업 & 수익화", "pipeline": "autoblog", "slug": "coupang-partners-guide", "focus_keyword": "쿠팡 파트너스 수익화"},
-    {"keyword": "가성비 노트북 추천 2026 용도별", "type": "conversion", "intent": "transactional", "category": "IT & 테크 리뷰", "pipeline": "autoblog", "slug": "budget-laptop-recommendation-2026", "focus_keyword": "가성비 노트북 추천"},
-    {"keyword": "재택근무 필수 장비 세팅 가이드", "type": "traffic", "intent": "informational", "category": "IT & 테크 리뷰", "pipeline": "autoblog", "slug": "remote-work-setup-guide", "focus_keyword": "재택근무 장비 추천"},
-    {"keyword": "정부지원금 총정리 2026 놓치면 손해", "type": "traffic", "intent": "informational", "category": "정부지원 & 절세", "pipeline": "autoblog", "slug": "government-subsidy-guide-2026", "focus_keyword": "정부지원금 총정리"},
-    {"keyword": "프리랜서 종합소득세 신고 방법", "type": "traffic", "intent": "informational", "category": "정부지원 & 절세", "pipeline": "autoblog", "slug": "freelancer-tax-filing-guide", "focus_keyword": "프리랜서 종합소득세"},
-    {"keyword": "소상공인 절세 전략 5가지", "type": "traffic", "intent": "informational", "category": "정부지원 & 절세", "pipeline": "autoblog", "slug": "small-business-tax-saving", "focus_keyword": "소상공인 절세"},
-    {"keyword": "실비보험 가입 가이드 연령별 비교 2026", "type": "conversion", "intent": "transactional", "category": "생활 경제", "pipeline": "autoblog", "slug": "health-insurance-comparison-2026", "focus_keyword": "실비보험 추천 비교"},
-    {"keyword": "전월세 계약 체크리스트 사기 방지", "type": "traffic", "intent": "informational", "category": "생활 경제", "pipeline": "autoblog", "slug": "lease-contract-checklist", "focus_keyword": "전월세 계약 주의사항"},
-    {"keyword": "1인 가구 생활비 절약법 실전", "type": "traffic", "intent": "informational", "category": "생활 경제", "pipeline": "autoblog", "slug": "single-household-saving-tips", "focus_keyword": "1인 가구 생활비 절약"}
+    {"keyword": "가성비 노트북 추천 2026 용도별", "type": "conversion", "intent": "transactional", "category": "AI 활용 & 도구", "pipeline": "autoblog", "slug": "budget-laptop-recommendation-2026", "focus_keyword": "가성비 노트북 추천"},
+    {"keyword": "재택근무 필수 장비 세팅 가이드", "type": "traffic", "intent": "informational", "category": "AI 활용 & 도구", "pipeline": "autoblog", "slug": "remote-work-setup-guide", "focus_keyword": "재택근무 장비 추천"},
+    {"keyword": "정부지원금 총정리 2026 놓치면 손해", "type": "traffic", "intent": "informational", "category": "재테크 & 투자", "pipeline": "autoblog", "slug": "government-subsidy-guide-2026", "focus_keyword": "정부지원금 총정리"},
+    {"keyword": "프리랜서 종합소득세 신고 방법", "type": "traffic", "intent": "informational", "category": "재테크 & 투자", "pipeline": "autoblog", "slug": "freelancer-tax-filing-guide", "focus_keyword": "프리랜서 종합소득세"},
+    {"keyword": "소상공인 절세 전략 5가지", "type": "traffic", "intent": "informational", "category": "재테크 & 투자", "pipeline": "autoblog", "slug": "small-business-tax-saving", "focus_keyword": "소상공인 절세"},
+    {"keyword": "실비보험 가입 가이드 연령별 비교 2026", "type": "conversion", "intent": "transactional", "category": "재테크 & 투자", "pipeline": "autoblog", "slug": "health-insurance-comparison-2026", "focus_keyword": "실비보험 추천 비교"},
+    {"keyword": "전월세 계약 체크리스트 사기 방지", "type": "traffic", "intent": "informational", "category": "재테크 & 투자", "pipeline": "autoblog", "slug": "lease-contract-checklist", "focus_keyword": "전월세 계약 주의사항"},
+    {"keyword": "1인 가구 생활비 절약법 실전", "type": "traffic", "intent": "informational", "category": "재테크 & 투자", "pipeline": "autoblog", "slug": "single-household-saving-tips", "focus_keyword": "1인 가구 생활비 절약"}
   ]
 }
