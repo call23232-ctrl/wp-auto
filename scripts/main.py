@@ -1306,25 +1306,38 @@ class ContentGenerator:
 
     def _call_gemini(self, prompt):
         import requests
-        try:
-            log.info("Gemini 초안 생성 중...")
-            resp = requests.post(
-                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_KEY}",
-                headers={"Content-Type": "application/json"},
-                json={"contents": [{"parts": [{"text": prompt}]}],
-                      "generationConfig": {"temperature": 0.8, "maxOutputTokens": 5000}},
-                timeout=180
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            content = data["candidates"][0]["content"]["parts"][0]["text"]
-            usage = data.get("usageMetadata", {})
-            self._log_cost("gemini-2.0-flash", "google", "content",
-                          usage.get("promptTokenCount", 0), usage.get("candidatesTokenCount", 0))
-            return content, "gemini-2.0-flash"
-        except Exception as e:
-            log.warning(f"Gemini 실패: {e}")
-            return None, None
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                log.info(f"Gemini 초안 생성 중...{f' (재시도 {attempt+1}/{max_retries})' if attempt else ''}")
+                resp = requests.post(
+                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_KEY}",
+                    headers={"Content-Type": "application/json"},
+                    json={"contents": [{"parts": [{"text": prompt}]}],
+                          "generationConfig": {"temperature": 0.8, "maxOutputTokens": 5000}},
+                    timeout=180
+                )
+                if resp.status_code == 429:
+                    wait = 30 * (attempt + 1)
+                    log.warning(f"Gemini 429 Rate Limit → {wait}초 대기 후 재시도")
+                    time.sleep(wait)
+                    continue
+                resp.raise_for_status()
+                data = resp.json()
+                content = data["candidates"][0]["content"]["parts"][0]["text"]
+                usage = data.get("usageMetadata", {})
+                self._log_cost("gemini-2.0-flash", "google", "content",
+                              usage.get("promptTokenCount", 0), usage.get("candidatesTokenCount", 0))
+                return content, "gemini-2.0-flash"
+            except Exception as e:
+                if "429" in str(e) and attempt < max_retries - 1:
+                    wait = 30 * (attempt + 1)
+                    log.warning(f"Gemini Rate Limit → {wait}초 대기 후 재시도")
+                    time.sleep(wait)
+                    continue
+                log.warning(f"Gemini 실패: {e}")
+                return None, None
+        return None, None
 
     def _call_deepseek(self, prompt):
         import requests
