@@ -139,7 +139,7 @@ jobs:
             ARGS="$ARGS --dry-run"
           fi
           if [ -n "$NICHE" ]; then
-            ARGS="$ARGS --niche $NICHE"
+            ARGS="$ARGS --niche \"$NICHE\""
           fi
 
           python scripts/main.py $ARGS
