@@ -85,6 +85,8 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Publish planx-ai.com
+        env:
+          FORCE_RUN: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
         run: |
           COUNT="${{ github.event.inputs.count || '1' }}"
           DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
@@ -150,6 +152,8 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Publish bomissu.com
+        env:
+          FORCE_RUN: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
         run: |
           COUNT="${{ github.event.inputs.count || '1' }}"
           DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
