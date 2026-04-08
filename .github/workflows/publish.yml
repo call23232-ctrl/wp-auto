@@ -113,7 +113,10 @@ jobs:
         run: |
           git config user.email "bot@autoblog.com"
           git config user.name "AutoBlog Bot"
+          git add data/used_keywords.json || true
+          git stash --include-untracked || true
           git pull --rebase || true
+          git stash pop || true
           git add data/used_keywords.json || true
           git diff --staged --quiet || git commit -m "chore: update used keywords [planx-ai] $(date +%Y-%m-%d)"
           git push || true
@@ -183,7 +186,10 @@ jobs:
         run: |
           git config user.email "bot@autoblog.com"
           git config user.name "AutoBlog Bot"
+          git add data/used_keywords.json || true
+          git stash --include-untracked || true
           git pull --rebase || true
+          git stash pop || true
           git add data/used_keywords.json || true
           git diff --staged --quiet || git commit -m "chore: update used keywords [bomissu] $(date +%Y-%m-%d)"
           git push || true

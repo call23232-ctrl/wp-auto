@@ -3948,7 +3948,7 @@ def run_pipeline(count=5, dry_run=False, pipeline="autoblog", site_override=None
             success += 1
 
             # Step 8: SNS 자동 공유 (snsOn 토글 반영)
-            sns_on = global_cfg.get("snsOn", {})
+            sns_on = site_dashboard_cfg.get("snsOn", {})
             sns_shared = []
             wp_link = result.get("url", "")
 
