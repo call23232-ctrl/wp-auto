@@ -7,6 +7,11 @@ patch_3days_seo.py — 3days 리포트 포스트 SEO 일괄 패치
 Usage:
   python scripts/patch_3days_seo.py           # 실제 패치
   python scripts/patch_3days_seo.py --dry-run # 미리보기만
+
+Environment:
+  WP_URL          = https://your-site.com
+  WP_USERNAME     = mymiryu@gmail.com
+  WP_APP_PASSWORD = (WordPress 앱 비밀번호)
 """
 
 import os
