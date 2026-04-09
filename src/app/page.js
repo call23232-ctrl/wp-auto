@@ -828,6 +828,7 @@ function NicheTab({ selNiches, toggleNiche, siteId }) {
   const [pubStatus, setPubStatus] = useState('idle');
   const [pubMsg, setPubMsg] = useState('');
   const [pubLogUrl, setPubLogUrl] = useState('');
+  const [nicheEditing, setNicheEditing] = useState(selNiches.length === 0);
   const { posts, loading: postsLoading } = useRecentPosts(siteId, 5);
 
   const handlePublish = async () => {
@@ -865,43 +866,79 @@ function NicheTab({ selNiches, toggleNiche, siteId }) {
   };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div>
-        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1a1a2e', marginBottom: 4 }}>니치 선택 (복합 가능)</h2>
-        <p style={{ fontSize: 13, color: '#94a3b8' }}>여러 니치를 동시에 선택할 수 있습니다. 선택한 모든 니치에서 키워드가 자동 생성됩니다.</p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <h2 style={{ fontSize: 18, fontWeight: 800, color: '#1a1a2e', marginBottom: 4 }}>니치 선택 (복합 가능)</h2>
+          <p style={{ fontSize: 13, color: '#94a3b8' }}>여러 니치를 동시에 선택할 수 있습니다. 선택한 모든 니치에서 키워드가 자동 생성됩니다.</p>
+        </div>
+        {selNiches.length > 0 && !nicheEditing && (
+          <button onClick={() => setNicheEditing(true)} style={{
+            padding: '8px 16px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff',
+            color: '#6366f1', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+            transition: 'all 0.15s',
+          }}>니치 변경</button>
+        )}
       </div>
 
-      {NICHE_CATS.map(cat => (
-        <Card key={cat.id}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a2e', marginBottom: 12 }}>{cat.icon} {cat.label}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
-            {cat.items.map(n => {
-              const sel = selNiches.includes(n.slug);
-              return (
-                <button key={n.slug} onClick={() => toggleNiche(n.slug)} style={{
-                  padding: '12px 10px', borderRadius: 12, cursor: 'pointer', textAlign: 'left',
-                  border: sel ? '2px solid #6366f1' : '1px solid #e2e8f0',
-                  background: sel ? 'rgba(99,102,241,0.06)' : '#ffffff',
-                  transition: 'all 0.15s'
-                }}>
-                  <div style={{ fontSize: 22 }}>{n.icon}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: sel ? '#6366f1' : '#1a1a2e', marginTop: 6 }}>{n.ko}</div>
-                  {n.cpm && <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>CPM {n.cpm}</div>}
-                </button>
-              );
+      {/* 선정된 니치 표시 (비편집 모드) */}
+      {selNiches.length > 0 && !nicheEditing && (
+        <Card style={{ background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.12)' }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#6366f1' }}>선택된 니치: {selNiches.length}개</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+            {selNiches.map(slug => {
+              const n = NICHE_CATS.flatMap(c => c.items).find(x => x.slug === slug);
+              return n ? <Badge key={slug} text={`${n.icon} ${n.ko}`} color="purple" /> : null;
             })}
           </div>
         </Card>
-      ))}
+      )}
 
-      <Card style={{ background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.12)' }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#6366f1' }}>선택됨: {selNiches.length}개</span>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-          {selNiches.map(slug => {
-            const n = NICHE_CATS.flatMap(c => c.items).find(x => x.slug === slug);
-            return n ? <Badge key={slug} text={`${n.icon} ${n.ko}`} color="purple" /> : null;
-          })}
-        </div>
-      </Card>
+      {/* 니치 선택 그리드 (편집 모드) */}
+      {nicheEditing && (
+        <>
+          {NICHE_CATS.map(cat => (
+            <Card key={cat.id}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#1a1a2e', marginBottom: 12 }}>{cat.icon} {cat.label}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+                {cat.items.map(n => {
+                  const sel = selNiches.includes(n.slug);
+                  return (
+                    <button key={n.slug} onClick={() => toggleNiche(n.slug)} style={{
+                      padding: '12px 10px', borderRadius: 12, cursor: 'pointer', textAlign: 'left',
+                      border: sel ? '2px solid #6366f1' : '1px solid #e2e8f0',
+                      background: sel ? 'rgba(99,102,241,0.06)' : '#ffffff',
+                      transition: 'all 0.15s'
+                    }}>
+                      <div style={{ fontSize: 22 }}>{n.icon}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: sel ? '#6366f1' : '#1a1a2e', marginTop: 6 }}>{n.ko}</div>
+                      {n.cpm && <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>CPM {n.cpm}</div>}
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+          ))}
+
+          <Card style={{ background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.12)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#6366f1' }}>선택됨: {selNiches.length}개</span>
+              {selNiches.length > 0 && (
+                <button onClick={() => setNicheEditing(false)} style={{
+                  padding: '8px 20px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                  background: '#6366f1', color: '#fff', fontSize: 12, fontWeight: 700,
+                  transition: 'all 0.15s',
+                }}>선택 완료</button>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+              {selNiches.map(slug => {
+                const n = NICHE_CATS.flatMap(c => c.items).find(x => x.slug === slug);
+                return n ? <Badge key={slug} text={`${n.icon} ${n.ko}`} color="purple" /> : null;
+              })}
+            </div>
+          </Card>
+        </>
+      )}
 
       {/* 콘텐츠 앵글 & 다양성 설명 */}
       {selNiches.length > 0 && (
@@ -2324,7 +2361,7 @@ function PostsTab({ siteId }) {
               <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
                 {['시간', '제목', '품질', '조회수', '파이프라인', '키워드', '길이', '이미지', '쿠팡', 'SNS', '상태'].map(h => (
                   <th key={h} style={{
-                    textAlign: 'left', padding: '12px 8px', color: '#94a3b8',
+                    textAlign: 'left', padding: '12px 8px', color: '#1a1a2e',
                     fontWeight: 600, fontSize: 11, letterSpacing: 0.5
                   }}>{h}</th>
                 ))}
@@ -2336,7 +2373,7 @@ function PostsTab({ siteId }) {
                   <td style={{ padding: '12px 8px', whiteSpace: 'nowrap', color: '#94a3b8', fontSize: 12 }}>
                     {new Date(p.published_at).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                   </td>
-                  <td style={{ padding: '12px 8px', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <td style={{ padding: '12px 8px', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#1a1a2e' }}>
                     {p.url ? (
                       <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ color: '#6366f1', textDecoration: 'none', fontWeight: 500 }}>{p.title}</a>
                     ) : p.title}

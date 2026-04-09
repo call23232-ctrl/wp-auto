@@ -662,137 +662,127 @@ class DynamicKeywordGenerator:
 # ═══════════════════════════════════════════════════════
 
 # ── 한국어 프롬프트 (소비자 중심) ──
-DRAFT_PROMPT_KO = """당신은 이 분야를 직접 경험하고 연구한 전문가이며, 동시에 독자의 감정을 움직이는 스토리텔러입니다.
+DRAFT_PROMPT_KO = """당신은 이 주제를 직접 경험한 사람이에요. 블로그 방문자가 "이 글 진짜 도움된다"며 즐겨찾기에 저장하는 수준의 글을 써주세요.
 
 키워드: {keyword}
 검색의도: {intent}
 카테고리: {category}
 
-=== 독자가 진짜 원하는 6가지 가치 (핵심 프레임워크) ===
-모든 문단은 아래 6가지 중 최소 1가지를 독자에게 제공해야 합니다:
-1. 돈 버는 정보: 수익을 만드는 구체적 방법/기회/루트
-2. 돈 아끼는 정보: 할인, 무료 대안, 숨겨진 혜택, 불필요한 지출 차단법
-3. 시간 절약: 빠른 방법, 자동화, 핵심만 정리, "이것만 하면 된다"
-4. 노력 절감: 쉬운 대안, 템플릿, 복사해서 쓸 수 있는 것, 단계 축소
-5. 성과 향상: 같은 노력으로 더 나은 결과를 내는 전략/도구/팁
-6. 남들이 모르는 것: 업계 인사이더 정보, 숨겨진 기능, 잘 안 알려진 혜택
+=== 핵심 원칙: "친구한테 카톡으로 공유하고 싶은 글" ===
+- 모든 문단은 독자에게 실질적 가치를 줘야 해요: 돈 아끼기, 시간 절약, 남들 모르는 정보, 바로 써먹는 팁 중 하나 이상
+- 빈 주장("~가 중요합니다"), 일반론("~를 고려해야 합니다"), 누구나 아는 상식은 과감히 삭제
+- 글을 읽은 뒤 "그래서 나는 뭘 해야 하지?"가 아니라 "오, 이거 당장 해봐야지!"가 나와야 해요
 
-글을 읽는 독자가 "이 글에서 진짜 쓸모 있는 걸 얻었다"고 느껴야 합니다.
-빈 주장, 일반론, 누구나 아는 상식은 가치가 없습니다.
+=== 글의 흐름 ===
+공감(독자 상황 이해) → 호기심("이런 게 있었어?") → 신뢰(수치/사실) → 행동("나도 해봐야지")
 
-=== 글의 감정 설계 (시나리오 아크) ===
-이 글은 독자의 감정을 다음 흐름으로 이끌어야 합니다:
-1단계 [감정 훅] 공감 → 2단계 [호기심] "이런 게 있었어?" → 3단계 [신뢰+도파민] 놀라운 수치/사실 → 4단계 [행동 욕구] "나도 해봐야지"
+=== 구조 가이드 ===
+1. 제목: <title> 태그
+   - 독자가 검색 결과에서 "이건 꼭 클릭해야 해"라고 느끼는 제목
+   - 키워드를 앞부분에 자연스럽게 포함 (SEO)
+   - 숫자, 구체적 혜택, 궁금증 유발 중 1개 이상
 
-=== 구조 규칙 ===
-1. 제목: <title> 태그. 독자가 "이건 꼭 읽어야 해"라고 느끼는 제목
-   - 숫자/구체적 혜택/긴급성 중 1개 이상 포함
-   - SEO: 키워드를 제목 앞부분에 자연스럽게 배치
-   - 제목에 코드, 해시값, 영문 ID 등 기술적 문자열 절대 포함 금지
+2. TL;DR (글 최상단, <title> 바로 아래):
+   - <div class="tldr-box"><strong>핵심 요약:</strong> [키워드에 대한 직접 답변 2~3줄]</div>
+   - 첫 100자 안에 키워드에 대한 명확한 답변 포함 (AI 검색 인용 최적화)
 
-2. 도입부 (감정 훅): 3~4문장
-   - 첫 문장: 독자의 고민/상황을 콕 찔러 감정 이입 유도
-   - 둘째 문장: "사실 대부분은 이걸 모르고 있어요" 식의 호기심 점화
-   - 마지막: 이 글을 읽으면 얻을 구체적 가치를 약속 (6가지 중 어떤 가치인지 명시)
+3. 도입부: 3~4문장
+   - 첫 문장: 독자의 상황/고민을 콕 찔러요 ("혹시 ~한 적 있으세요?", "~하느라 고민이시죠?")
+   - 이 글에서 얻을 구체적 가치를 약속
 
-3. 본문: H2 소제목 5~7개, 각 300~500자
-   - 키워드를 H2 2~3개에 자연스럽게 포함 (SEO)
+4. 본문: H2 소제목 4~8개 (주제에 맞게 자연스럽게)
+   - H2를 가능하면 독자의 질문 형태로 ("~은 얼마나 들까요?", "~하면 정말 효과 있을까?")
+     → AI 검색엔진이 이 형태를 가장 많이 인용해요
+   - 키워드를 H2 2~3개에 자연스럽게 포함
    - 모든 주장에 구체적 수치/비교/출처 (근거 없는 문장 금지)
-   - 각 섹션의 첫 문장에서 "이 섹션을 읽으면 얻는 가치"를 암시
-   - <strong> 핵심 정보 강조 (최소 7개)
+   - <strong>으로 핵심 정보 강조 (7개 이상)
 
-4. 가치 블록 (본문 전체에 걸쳐 필수 삽입):
-   - <blockquote>: 남들이 모르는 놀라운 사실/수치 (도파민 트리거)
-   - <div class="tip-box">: 바로 실행하면 시간/돈/노력을 절약하는 구체적 팁
-   - <div class="key-point">: 이 섹션에서 당장 써먹을 수 있는 핵심 1줄 요약
-     주의: key-point 안에 ①②③ 번호가 있으면 각 번호마다 줄바꿈하여 깔끔하게 정리
-   - <table>: 비교해서 최적의 선택을 돕는 표 (<thead>+<tbody> 필수)
-   위 4종 블록을 글 전체에 각 1~2개씩 (같은 블록 연속 배치 금지)
+5. 가치 블록 (본문 곳곳에 자연스럽게 삽입):
+   - <blockquote>: "잠깐, 이건 꼭 알아두세요" 식의 놀라운 사실/수치
+   - <div class="tip-box">: 바로 실행 가능한 구체적 팁
+   - <div class="key-point">: 이 섹션의 핵심 한 줄 (①②③ 번호는 각각 줄바꿈)
+   - <table>: 비교/선택을 돕는 표 (<thead>+<tbody> 필수)
+   각 1~2개씩, 같은 블록 연속 배치 금지
 
-5. 관련 사이트/링크: 주제와 관련된 공식 사이트나 유용한 리소스가 있다면 본문에 자연스럽게 포함
-   - 예: "자세한 내용은 <a href='https://k-startup.go.kr' target='_blank'>K-Startup 포털</a>에서 확인하세요"
-   - 정부 사이트, 공식 도구 페이지, 공인 기관 링크만 (개인 블로그/광고 링크 금지)
+6. FAQ (본문 마지막, 마무리 앞):
+   - <div class="faq-section"> 안에 Q&A 3~5개
+   - <h3>Q. [독자가 실제로 AI에게 물어볼 법한 질문]</h3><p><strong>A.</strong> [2~3문장 직접 답변]</p>
+   - FAQ 뒤에 JSON-LD Schema 삽입:
+     <script type="application/ld+json">{{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{{"@type":"Question","name":"[질문1]","acceptedAnswer":{{"@type":"Answer","text":"[답변1]"}}}},{{"@type":"Question","name":"[질문2]","acceptedAnswer":{{"@type":"Answer","text":"[답변2]"}}}}]}}</script>
 
-6. 마무리: "이 글에서 얻은 것" 핵심 3줄 + 구체적 다음 행동 1가지
+7. 마무리: 핵심 3줄 요약 + "지금 바로 할 수 있는 것" 1가지
 
-6. 톤: 한국 독자 맞춤 — 쉽고 친근하게
-   - 옆집 형/누나가 알려주듯 편안한 말투 ("~해요", "~거든요", "~이에요")
-   - "~입니다", "~한 것입니다" 같은 딱딱한 문체 금지
-   - 번역체/영어식 표현 절대 금지 ("레버리지", "인사이더 정보", "스케일링" → 한국어로 풀어쓰기)
-   - 전문 용어는 반드시 괄호로 쉽게 풀이: "엣지AI(내 기기에서 직접 돌리는 AI)"
-   - 중학생도 이해할 수 있는 수준으로 쓰기 — 어려운 개념은 비유로 먼저 설명
-   - 짧은 문장(5어절)과 긴 문장(15어절) 리듬감 있게 교차
+8. 관련 사이트: 공식 사이트/정부 포털이 있으면 본문에 자연스럽게 링크
+   - 정부 사이트, 공식 도구, 공인 기관만 (개인 블로그/광고 링크 금지)
 
-7. 나열/목록 규칙:
-   - 3개 이상 항목을 나열할 때는 반드시 <ol> 또는 <ul>로 줄바꿈 정리
-   - 한 문장에 1, 2, 3, 4 쭉 나열 금지 — 각 항목을 <li>로 분리
-   - 각 <li>는 1~2문장으로 간결하게
+=== 톤: "옆자리 동료가 알려주는 느낌" ===
+- "~해요", "~거든요", "~이에요" — 카페에서 대화하듯 편안하게
+  예시: "사실 이거 모르면 매달 3만 원씩 손해 보는 거예요." (O)
+  예시: "이에 대해 살펴보겠습니다." (X) / "한번 알아볼게요." (O)
+- "~입니다", "~것입니다", "~살펴보겠습니다" 같은 딱딱한 문체 절대 금지
+- 번역체 금지: "레버리지"→"지렛대 효과", "인사이트"→"핵심 포인트", "스케일링"→"규모 키우기"
+- AI 특유 표현 금지: "다양한", "살펴보겠습니다", "관심이 높아지고 있습니다", "주목할 만합니다"
+- 전문 용어는 일상 비유 먼저, 그 다음 용어: "여러 주식을 한 바구니에 담는 상품(ETF)"
+- 짧은 문장과 긴 문장을 리듬감 있게 교차 — 셋 중 하나는 질문이나 감탄으로
 
-8. 분량: 4,000~6,000자 (군더더기 없이 핵심만)
-   - 글자수 맞추기 위한 불필요한 서론/반복/장황한 설명 금지
-   - 모든 문장이 독자에게 가치를 줘야 함 — 안 주는 문장은 삭제
-
-9. E-E-A-T 시그널 (구글 SEO 핵심):
-   - Experience(경험): "직접 해보니", "실제로 신청해봤는데" 등 1인칭 경험 서술 1~2회
-   - Expertise(전문성): 정확한 수치, 공식 출처, 근거법령/제도명 명시
-   - Authoritativeness(권위): 정부 사이트, 공식 기관, 신뢰할 수 있는 통계 인용
-   - Trustworthiness(신뢰): "2026년 4월 기준", "2025년 개정 기준" 등 최신 시점 명시
-   - 도입부에 "이 글의 핵심 내용" 요약 (검색 결과 Featured Snippet 최적화)
-
-10. 내부 링크 유도 문구:
-    - 본문 중간 1~2회 "관련 글: OO에 대해 더 알아보기" 식의 앵커 유도 (실제 링크 없이 텍스트만)
-    - 마무리에서 "다음에 읽으면 좋은 주제: OO" 제안
+=== E-E-A-T (구글 SEO) ===
+- "직접 해보니", "실제로 써봤는데" 등 1인칭 경험 1~2회
+- 수치/통계에 시점 명시 ("2026년 기준")
+- 공식 기관/사이트명 1개 이상 언급
 
 === HTML 규칙 (절대 준수) ===
 - <title>글제목</title>을 최상단에
 - <h2>, <p>, <strong>, <ul>/<ol>, <table>, <blockquote> 사용
-- <div class="tip-box">, <div class="key-point"> 사용 가능
+- <div class="tip-box">, <div class="key-point">, <div class="tldr-box">, <div class="faq-section"> 사용 가능
 - <h1> 금지 (워드프레스 자동 생성)
 - 각 <p>는 2~4문장, H2 사이 최소 2개 <p>
 - <table>은 반드시 <thead><tr><th>헤더</th></tr></thead><tbody><tr><td>내용</td></tr></tbody> 구조
-- 마크다운 문법 절대 금지: **bold**, *italic*, ```code```, ## 제목, – 대시 리스트 사용 금지
-- 굵게: <strong>, 목록: <ol><li> 또는 <ul><li>
-- 연속으로 같은 블록(tip-box, key-point, blockquote) 2개 배치 금지
+- 3개+ 나열은 반드시 <ol>/<ul>로 (한 문장에 쭉 나열 금지)
+- 마크다운 문법 절대 금지 — HTML 태그만 사용
+- 연속으로 같은 블록 2개 배치 금지
+- 분량: 4,000~6,000자 (군더더기 없이 알차게)
 """
 
-POLISH_PROMPT_KO = """아래 블로그 초안을 독자가 즐겨찾기에 저장할 수준으로 업그레이드하세요.
+POLISH_PROMPT_KO = """이 초안을 "친구한테 카톡으로 공유하고 싶은 글"로 다듬어주세요.
+검사 기준: 이 글을 소리 내어 읽었을 때 자연스러운 사람의 말투인지, 블로그에 들어온 방문자가 "정리 잘 되어 있네, 유용하다"고 느끼는지.
 
 키워드: {keyword}
 
-=== 가치 검증 (최우선) ===
-초안의 모든 문단을 아래 6가지 가치 기준으로 점검하세요:
-- 돈 버는 정보 / 돈 아끼는 정보 / 시간 절약 / 노력 절감 / 성과 향상 / 남들이 모르는 것
-각 문단이 6가지 중 하나도 제공하지 않으면 → 구체적 수치/팁/방법으로 보강하거나 삭제
-"일반론", "~가 중요합니다", "~를 고려해야 합니다" 같은 빈 문장은 100% 제거
+=== 1순위: 기계적 느낌 제거 ===
+아래 패턴을 하나도 남기지 마세요:
+- AI 표현: "다양한", "살펴보겠습니다", "관심이 높아지고 있습니다", "주목할 만합니다", "알아보겠습니다"
+  → "한번 볼게요", "꽤 쓸만해요", "요즘 뜨고 있어요"
+- 번역체: "레버리지", "인사이트", "스케일링", "파이프라인", "워크플로우"
+  → "지렛대 효과", "핵심 포인트", "규모 키우기", "처리 과정", "작업 흐름"
+- 딱딱한 문체: "~입니다", "~것입니다", "~에 대해 알아보겠습니다"
+  → "~이에요", "~거든요", "~해보면"
 
-=== 업그레이드 규칙 ===
-1. AI 특유 표현 + 번역체 완전 제거:
-   - AI 표현: "다양한", "중요합니다", "살펴보겠습니다", "관심이 높아지고 있습니다"
-   - 번역체: "레버리지하다", "인사이더 정보", "스케일링", "파이프라인", "워크플로우"
-   → 한국어 자연어로 100% 교체 (예: "스케일링" → "규모 키우기", "워크플로우" → "작업 흐름")
-2. 난이도 점검: 중학생도 이해할 수 있는지 확인
-   - 전문 용어에 괄호 풀이가 없으면 추가
-   - 어려운 개념은 비유를 먼저 넣기
-3. 모든 문단에 구체적 수치/사례/비교 1개 이상 (빈 주장 금지)
-4. 문장 리듬: 짧은 문장(5어절)과 긴 문장(15어절) 교차
-5. 감정 설계: 도입부에 감정 훅 → 본문에서 호기심+놀라움 → 마무리에서 행동 욕구
-6. 키워드를 H2 2~3개, 도입부, 마무리에 자연스럽게 배치 (SEO)
-7. 가치 블록 확인: <blockquote> 1개+, <div class="tip-box"> 1개+, <div class="key-point"> 1개+ 없으면 추가
-8. 나열 점검: 3개+ 항목이 한 문장에 나열되어 있으면 <ol>/<ul>로 분리
-9. <strong> 최소 7개 이상
-10. 군더더기 제거: 글자수 채우기용 반복/장황한 설명 삭제. 4,000~6,000자면 충분
-11. HTML 구조 유지. 마크다운 잔재(**bold**, ```code```) 발견 시 HTML로 교체
-12. <table>이 있으면 반드시 <thead><tr><th>...</th></tr></thead><tbody>... 구조
-13. E-E-A-T 점검:
-    - 1인칭 경험 서술이 1~2회 있는지 (없으면 자연스럽게 추가)
-    - 수치/통계에 시점("2026년 기준")이 명시되어 있는지
-    - 도입부에 "이 글의 핵심" 요약이 있는지 (Featured Snippet 최적화)
-    - 공식 사이트/기관 이름이 1개 이상 언급되어 있는지
+=== 2순위: 읽기 흐름 점검 ===
+- 한 섹션을 다 읽었을 때 "다음은 뭐지?"가 궁금해지는 연결고리가 있는지 확인
+- 없으면 섹션 끝에 다음 내용을 암시하는 한 줄 추가 ("그런데 여기서 한 가지 더 알아둘 게 있어요")
+- 전문 용어가 설명 없이 나오면 → 일상 비유 먼저, 그 다음 용어 ("여러 주식을 한 바구니에 담은 상품, ETF라고 해요")
+
+=== 3순위: 가치 검증 ===
+- 각 문단이 돈 아끼기/시간 절약/남들 모르는 정보/바로 써먹는 팁 중 하나를 주는지
+- "~가 중요합니다", "~를 고려해야 합니다" 같은 빈 문장 → 구체적 수치/팁으로 교체하거나 삭제
+- 모든 주장에 수치/사례/비교 1개 이상
+
+=== 4순위: GEO (AI 검색 인용) 점검 ===
+- TL;DR 박스(<div class="tldr-box">)가 글 최상단에 있는지 확인. 없으면 도입부 위에 추가
+- FAQ 섹션(<div class="faq-section">)이 있는지 확인. 없으면 Q&A 3개 생성하여 마무리 앞에 추가
+- FAQ 뒤에 JSON-LD FAQPage Schema(<script type="application/ld+json">)가 있는지 확인. 없으면 추가
+
+=== 5순위: SEO + 구조 ===
+- 키워드가 H2 2~3개, TL;DR, 마무리에 자연스럽게 포함되어 있는지
+- <blockquote> 1개+, <div class="tip-box"> 1개+, <div class="key-point"> 1개+ 확인
+- <strong> 7개 이상, <table>은 <thead>+<tbody> 구조
+- 3개+ 나열이 한 문장에 쭉 있으면 <ol>/<ul>로 분리
+- 마크다운 잔재(**bold**, ```code```) → HTML로 교체
+- 4,000~6,000자 유지 (군더더기 삭제)
 
 === 절대 금지 (출력 형식) ===
 - 폴리싱된 HTML 본문만 출력하세요. 그 외 아무것도 출력하지 마세요.
-- "수정 내역", "폴리싱 요약", "변경 사항", "수정한 부분" 등 메타 설명 금지
-- 인사말, 서문, 맺음말 등 부가 텍스트 금지
+- "수정 내역", "폴리싱 요약", "변경 사항" 등 메타 설명 금지
 - <title>로 시작해서 HTML 본문으로 끝나야 합니다
 
 초안:
@@ -1084,8 +1074,9 @@ GOLDEN_DRAFT_PROMPT_KO = """# Role (역할)
    본문 내내 이 명칭을 반복하여 권위성을 확보할 것.
 4. **데이터 앵커링 필수**: 도입부 첫 3문장 안에 구체적인 수치/통계/확률을 배치하여 전문가로서의 권위를 즉시 확보할 것.
    예시: "국내 ETF 시장 규모가 2026년 기준 130조 원을 돌파하며..." / "평균 실패율 73%인 이 방법 대신..."
-5. 문체는 단호하고 확신에 찬 전문가의 어조를 사용할 것 (~합니다, ~하십시오).
-   단, 전문 용어는 반드시 괄호로 쉬운 설명 병기: "MDD(최대 낙폭, 투자 기간 중 최대 손실폭)"
+5. 문체는 신뢰감 있되 읽기 편한 톤을 사용할 것 (~합니다, ~해요 혼용).
+   "~하십시오" 같은 명령형은 최소화. 독자가 전문가의 조언을 편하게 듣는 느낌.
+   전문 용어는 반드시 일상 비유 + 괄호 설명 병기: "투자 기간 중 최대 손실폭을 뜻하는 MDD"
 6. 번역체/영어식 표현 절대 금지 → 한국어로 풀어쓰기
    ("레버리지" → "지렛대 효과", "스케일링" → "규모 확장", "포트폴리오" → "투자 바구니" 또는 괄호 병기)
 7. 3개 이상 항목 나열 시 반드시 <ol> 또는 <ul>로 줄바꿈 정리. 한 문장에 나열 금지.
@@ -1100,49 +1091,44 @@ GOLDEN_DRAFT_PROMPT_KO = """# Role (역할)
    - 정확한 수치를 모르면 "수십조 원 규모", "과반수 이상" 등 범위형 표현 사용.
    - "73%", "130조 원" 등 구체적 수치는 검증 가능한 경우에만 사용.
 
-# Output Structure (출력 구조 — 100% 준수)
-반드시 HTML 형식으로 다음 구조를 순서대로 출력하십시오.
+# Output Structure (출력 구조)
+반드시 HTML 형식으로 출력하십시오. 아래는 참고 구조이며, 키워드에 맞게 H2 제목과 순서를 자연스럽게 변형해도 됩니다.
 
-<title>[주제와 관련된 강력한 훅(Hook)을 담은 매혹적인 제목 — 키워드를 앞부분에 포함]</title>
+<title>[키워드를 앞부분에 포함한 매혹적인 제목]</title>
 
-<p>(도입부 — 아래 패턴을 정확히 따를 것) 4~5문장.
+<div class="tldr-box"><strong>핵심 요약:</strong> [키워드에 대한 직접 답변 2~3줄 — AI 검색 인용 최적화]</div>
+
+<p>(도입부 — 아래 패턴을 따를 것) 4~5문장.
 {intro_hook}
-도입부는 반드시 위 패턴의 지시를 100% 준수하여 작성하십시오.</p>
+도입부는 반드시 위 패턴을 준수하여 작성.</p>
 
-<div class="key-point"><strong>이 글의 순서</strong><br/>(본문의 핵심 소제목 3~4개를 번호 리스트로 정리)</div>
+<div class="key-point"><strong>이 글의 순서</strong><br/>(핵심 소제목 3~4개를 번호 리스트로 정리)</div>
 
-<h2>1. 기존의 방식이 실패할 수밖에 없는 이유</h2>
-<p>(문제 정의) 대중들이 알고 있는 상식의 허점을 데이터와 논리로 반박. 400~600자. <strong> 강조 3개 이상.</p>
+(H2 5~7개를 키워드에 맞게 자유롭게 구성. 아래는 참고용:)
+- 문제 정의 / 핵심 해결책(프레임워크) / 심화 적용 / 리스크 관리 / 실행 로드맵
+- H2를 가능하면 독자의 질문 형태로 작성 (AI 검색 인용 최적화)
+- 각 섹션에 <strong> 강조, 수치/데이터, 가치 블록을 자연스럽게 배치
+- 비교/정리 <table> 최소 1개, <blockquote>/<tip-box>/<key-point> 각 1개 이상
 
-<h2>2. [당신이 창작한 독점적 프레임워크 이름] : 본질적 해결책</h2>
-<p>(이 글의 핵심 인사이트) 프레임워크의 구조를 단계별로 설명. 비교/정리 <table> 필수. 각 단계마다 구체적 수치/기대효과 포함. 600~800자.</p>
+<div class="faq-section">
+(FAQ 3~5개: 독자가 AI에게 물어볼 법한 질문과 직접 답변)
+<h3>Q. [질문]</h3><p><strong>A.</strong> [2~3문장 답변]</p>
+</div>
+<script type="application/ld+json">{{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{{"@type":"Question","name":"[질문1]","acceptedAnswer":{{"@type":"Answer","text":"[답변1]"}}}},{{"@type":"Question","name":"[질문2]","acceptedAnswer":{{"@type":"Answer","text":"[답변2]"}}}}]}}</script>
 
-<div class="tip-box"><strong>실전 적용 팁</strong><br/>(독자가 당장 오늘부터 실행할 수 있는 구체적인 액션 플랜 1가지)</div>
-
-<h2>3. [프레임워크] 심화 적용: 성과를 극대화하는 전략</h2>
-<p>(프레임워크를 고급 레벨로 확장. 실전 시나리오, 케이스 스터디, 응용 방법. 400~600자.)</p>
-
-<h2>4. 리스크 관리 및 시스템화 전략</h2>
-<p>(정보를 아는 것에서 끝나지 않고, 이를 자동화/시스템화하는 전문가적 조언. 400~600자.)</p>
-
-<blockquote><strong>인사이트 팩트 체크</strong><br/>(본문 내용을 뒷받침하는 결정적인 통계, 논리, 또는 전문가의 시각)</blockquote>
-
-<h2>5. 실행 로드맵: 지금 당장 시작하는 3단계</h2>
-<p>(구체적인 실행 단계를 <ol>로 정리. 각 단계에 예상 소요시간/비용/기대효과 포함.)</p>
-
-<div class="key-point"><strong>최종 핵심 요약 (Executive Summary)</strong><br/>
-(글의 전체 내용을 3줄 요약 + 프레임워크 이름 재언급 + 다음 행동을 유도하는 강력한 클로징)</div>
+<div class="key-point"><strong>최종 핵심 요약</strong><br/>
+(3줄 요약 + 프레임워크 이름 재언급 + 다음 행동 유도)</div>
 
 === HTML 규칙 (절대 준수) ===
 - <title>글제목</title>을 최상단에
 - <h2>, <h3>, <p>, <strong>, <ol>/<ul>, <table>, <blockquote> 사용
-- <div class="tip-box">, <div class="key-point"> 사용 가능
+- <div class="tip-box">, <div class="key-point">, <div class="tldr-box">, <div class="faq-section"> 사용 가능
 - <h1> 금지 (워드프레스 자동 생성)
-- <table>은 반드시 <thead><tr><th>헤더</th></tr></thead><tbody><tr><td>내용</td></tr></tbody> 구조
-- 마크다운 문법 절대 금지: **bold**, ```code```, ## 제목 → HTML 태그만 사용
+- <table>은 반드시 <thead>+<tbody> 구조
+- 마크다운 문법 절대 금지 — HTML 태그만 사용
 - <strong> 강조 최소 10개
 - 분량: 5,000~7,000자 (군더더기 없이 알차게)
-- 연속으로 같은 블록(tip-box, key-point, blockquote) 2개 배치 금지
+- 연속으로 같은 블록 2개 배치 금지
 """
 
 GOLDEN_POLISH_PROMPT_KO = """아래 블로그 초안을 '업계 탑 전문가의 칼럼' 수준으로 업그레이드하세요.
@@ -1153,15 +1139,15 @@ GOLDEN_POLISH_PROMPT_KO = """아래 블로그 초안을 '업계 탑 전문가의
 1. **프레임워크 검증**: 독점적 프레임워크 이름이 있는지 확인. 없으면 [영문3자리]+[명사] 형태로 생성하여 삽입.
    프레임워크 이름은 본문에 최소 5회 반복되어야 함 (권위성 확보).
 2. **데이터 앵커링 검증**: 도입부 3문장 안에 구체적 수치/통계가 있는지 확인. 없으면 해당 주제의 설득력 있는 데이터를 추가.
-3. **감성 제거**: "제 지인", "제가 해봤는데", "여러분", "~거든요", "~해요" 같은 소비자 톤 표현을 모두 제거.
-   → 전문가 톤으로 교체 (~합니다, ~하십시오, ~입니다)
+3. **톤 밸런스**: 전문적이되 읽기 편하게. "~합니다"와 "~해요"를 7:3 비율로 혼용.
+   "~하십시오" 같은 명령형은 최소화. "여러분" → 자연스러운 2인칭 최소화.
 4. AI 특유 표현 제거: "다양한", "살펴보겠습니다", "알아보겠습니다", "관심이 높아지고 있습니다"
-   → 논리적이고 단정적인 표현으로 100% 교체
+   → 자연스럽고 단정적인 표현으로 교체
 5. 번역체 제거: "레버리지", "인사이더 정보", "스케일링" → 한국어 풀어쓰기 또는 괄호 병기
 6. 모든 주장에 구체적 수치/비교/출처 필수 (근거 없는 문장 삭제)
 7. 전문 용어에 괄호 풀이 확인: "ETF(여러 주식을 한 바구니에 담은 상품)"
-8. 구조 검증: 문제 정의 → 프레임워크 해결책 → 심화 → 리스크 → 실행 로드맵 → Executive Summary 순서
-9. Executive Summary가 없으면 마지막에 추가 (3줄 요약 + 프레임워크 재언급)
+8. 구조 검증: 주제에 맞는 자연스러운 흐름인지. Executive Summary가 없으면 마지막에 추가.
+9. **GEO 검증**: TL;DR 박스(<div class="tldr-box">)가 글 최상단에 있는지, FAQ 섹션(<div class="faq-section">)이 있는지, JSON-LD FAQPage Schema가 있는지 확인. 없으면 추가.
 10. <strong> 최소 10개, <table> 1개 이상, key-point/tip-box/blockquote 각 1개 이상
 11. HTML 구조 유지. 마크다운 잔재 발견 시 HTML로 교체.
 12. 분량 5,000~7,000자 유지. 군더더기 삭제, 부족하면 데이터 기반 콘텐츠 보강.
@@ -1467,16 +1453,17 @@ class ContentGenerator:
 # ═══════════════════════════════════════════════════════
 class QualityGate:
     """
-    품질 채점 기준 (100점 만점) — SEO + 비주얼 통합:
+    품질 채점 기준 (100점 만점) — SEO + GEO + 가독성 통합:
     - 콘텐츠 길이: 20점 (5000자+ = 20, 4000+ = 16, 3000+ = 12, 2000+ = 8, 미만 = 4)
-    - H2 소제목 수: 15점 (5~7개 = 15, 4/8 = 12, 3/9 = 8, 기타 = 0)
+    - H2 소제목 수: 15점 (4~8개 = 15, 3/9 = 10, 기타 = 0)
     - 문단 품질: 10점 (평균 80~400자 = 10, 50~500자 = 7, 기타 = 3)
-    - 이미지 포함: 15점 (2장+ = 15, 1장 = 10, 없음 = 0)
+    - 이미지 포함: 10점 (2장+ = 10, 1장 = 7, 없음 = 0)
     - 키워드 SEO: 10점 (H2에 키워드 2개+ = 10, 1개 = 6, 없음 = 0)
     - <strong> 강조: 5점 (5개+ = 5, 3~4개 = 3, 미만 = 0)
     - CTA 존재: 5점
     - HTML 구조: 5점
-    - 비주얼 블록: 15점 (blockquote/tip-box/key-point/table 중 3종+ = 15, 2종 = 10, 1종 = 5, 없음 = 0)
+    - 비주얼 블록: 10점 (blockquote/tip-box/key-point/table 중 3종+ = 10, 2종 = 7, 1종 = 3)
+    - GEO 구조: 10점 (FAQ/JSON-LD/TL;DR 중 2개+ = 10, 1개 = 5, 없음 = 0) — NEW
     """
 
     MIN_SCORE = 85
@@ -1498,9 +1485,8 @@ class QualityGate:
         # 2. H2 소제목 수 (15점)
         h2s = re.findall(r'<h2[^>]*>(.*?)</h2>', content, re.IGNORECASE)
         h2_count = len(h2s)
-        if 5 <= h2_count <= 7: pts = 15
-        elif h2_count in (4, 8): pts = 12
-        elif h2_count in (3, 9): pts = 8
+        if 4 <= h2_count <= 8: pts = 15
+        elif h2_count in (3, 9): pts = 10
         else: pts = 0
         total += pts
         details['h2_count'] = f"{h2_count}개 ({pts}/15)"
@@ -1518,16 +1504,16 @@ class QualityGate:
         total += pts
         details['paragraphs'] = f"{len(paragraphs)}개, 평균 {avg_len:.0f}자 ({pts}/10)"
 
-        # 4. 이미지 포함 (15점) — 다중 이미지 보너스
+        # 4. 이미지 포함 (10점)
         img_count = len(re.findall(r'<img\s', content, re.IGNORECASE))
         if not has_image and img_count == 0:
             pts = 0
         elif img_count >= 2 or has_image:
-            pts = 15 if img_count >= 2 else 10
+            pts = 10 if img_count >= 2 else 7
         else:
-            pts = 10
+            pts = 7
         total += pts
-        details['image'] = f"{img_count}장 ({pts}/15)"
+        details['image'] = f"{img_count}장 ({pts}/10)"
 
         # 5. 키워드 SEO (10점) — H2 내 키워드 포함
         kw_words = keyword.lower().split()
@@ -1555,18 +1541,29 @@ class QualityGate:
         total += pts
         details['structure'] = f"{'정상' if has_proper else '비정상'} ({pts}/5)"
 
-        # 9. 비주얼 블록 다양성 (15점) — NEW
+        # 9. 비주얼 블록 다양성 (10점)
         visual_types = 0
         if '<blockquote' in content: visual_types += 1
         if 'tip-box' in content or '\U0001f4a1' in content or '실용 팁' in content: visual_types += 1
         if 'key-point' in content or '\U0001f3af' in content or '핵심 포인트' in content: visual_types += 1
         if '<table' in content: visual_types += 1
-        if visual_types >= 3: pts = 15
-        elif visual_types == 2: pts = 10
-        elif visual_types == 1: pts = 5
+        if visual_types >= 3: pts = 10
+        elif visual_types == 2: pts = 7
+        elif visual_types == 1: pts = 3
         else: pts = 0
         total += pts
-        details['visual_blocks'] = f"{visual_types}종 ({pts}/15)"
+        details['visual_blocks'] = f"{visual_types}종 ({pts}/10)"
+
+        # 10. GEO 구조 (10점) — AI 검색 인용 최적화
+        geo_elements = 0
+        if 'faq-section' in content or '<h3>Q.' in content: geo_elements += 1
+        if 'application/ld+json' in content: geo_elements += 1
+        if 'tldr-box' in content or '핵심 요약' in content[:500]: geo_elements += 1
+        if geo_elements >= 2: pts = 10
+        elif geo_elements == 1: pts = 5
+        else: pts = 0
+        total += pts
+        details['geo_structure'] = f"{geo_elements}종 ({pts}/10)"
 
         return total, details
 
@@ -3013,6 +3010,55 @@ class ContentFormatter:
 
         content = re.sub(r'<img[^>]+>', _add_keyword_alt, content)
 
+        # 3. FAQ JSON-LD Schema 검증 — 프롬프트가 생성한 FAQ가 있으면 Schema 확인
+        if '<div class="faq-section">' in content and 'FAQPage' not in content:
+            faq_questions = re.findall(
+                r'<h3>\s*Q\.\s*(.*?)</h3>\s*<p>\s*<strong>A\.</strong>\s*(.*?)</p>',
+                content, re.DOTALL
+            )
+            if faq_questions:
+                entities = []
+                for q, a in faq_questions:
+                    q_clean = re.sub(r'<[^>]+>', '', q).strip()
+                    a_clean = re.sub(r'<[^>]+>', '', a).strip().replace('"', '\\"')
+                    entities.append(
+                        f'{{"@type":"Question","name":"{q_clean}",'
+                        f'"acceptedAnswer":{{"@type":"Answer","text":"{a_clean}"}}}}'
+                    )
+                schema = (
+                    f'<script type="application/ld+json">'
+                    f'{{"@context":"https://schema.org","@type":"FAQPage",'
+                    f'"mainEntity":[{",".join(entities)}]}}'
+                    f'</script>'
+                )
+                # FAQ 섹션 닫는 div 뒤에 삽입
+                faq_end = content.rfind('</div>', content.find('<div class="faq-section">'))
+                if faq_end != -1:
+                    insert_pos = faq_end + len('</div>')
+                    content = content[:insert_pos] + '\n' + schema + content[insert_pos:]
+
+        # 4. Article Schema (JSON-LD) — AI 검색엔진 구조화 데이터
+        if 'application/ld+json' not in content or '"Article"' not in content:
+            title_match = re.search(r'<title>(.*?)</title>', content)
+            headline = title_match.group(1) if title_match else keyword
+            headline_escaped = headline.replace('"', '\\"')
+            # 메타 설명 추출 (첫 150자)
+            plain = re.sub(r'<[^>]+>', '', content)
+            desc_raw = ' '.join(plain.split()[:40])
+            desc = (desc_raw[:155] + '...') if len(desc_raw) > 155 else desc_raw
+            desc_escaped = desc.replace('"', '\\"')
+
+            article_schema = (
+                f'<script type="application/ld+json">'
+                f'{{"@context":"https://schema.org","@type":"Article",'
+                f'"headline":"{headline_escaped}",'
+                f'"description":"{desc_escaped}",'
+                f'"author":{{"@type":"Person","name":"Blog Author"}},'
+                f'"publisher":{{"@type":"Organization","name":"Blog"}}'
+                f'}}</script>'
+            )
+            content = content.rstrip() + '\n' + article_schema
+
         return content
 
     def _apply_niche_colors(self, category):
@@ -3947,6 +3993,10 @@ def run_pipeline(count=5, dry_run=False, pipeline="autoblog", site_override=None
             km.mark_used(keyword)
             success += 1
 
+            # IndexNow: 새 URL 즉시 색인 요청
+            if result.get("url"):
+                _submit_indexnow(result["url"])
+
             # Step 8: SNS 자동 공유 (snsOn 토글 반영)
             sns_on = site_dashboard_cfg.get("snsOn", {})
             sns_shared = []
@@ -4109,12 +4159,44 @@ def _ping_sitemaps(wp_url):
     except Exception:
         log.warning("  Google 핑 실패 (무시)")
 
-    # Bing/IndexNow Ping
+    # Bing Ping
     try:
         _req.get(f"https://www.bing.com/ping?sitemap={sitemap_url}", timeout=10)
         log.info(f"  Bing 사이트맵 핑 완료")
     except Exception:
         log.warning("  Bing 핑 실패 (무시)")
+
+
+def _submit_indexnow(url):
+    """IndexNow API로 새 URL 즉시 색인 요청 (Bing, Yandex, Naver 등)"""
+    import requests as _req
+    api_key = os.getenv("INDEXNOW_KEY", "")
+    if not api_key or not url:
+        return
+
+    domain = url.split("//")[-1].split("/")[0]
+    payload = {
+        "host": domain,
+        "key": api_key,
+        "urlList": [url],
+    }
+
+    endpoints = [
+        "https://api.indexnow.org/indexnow",
+        "https://www.bing.com/indexnow",
+        "https://searchadvisor.naver.com/indexnow",
+    ]
+
+    for endpoint in endpoints:
+        try:
+            resp = _req.post(endpoint, json=payload, timeout=10,
+                           headers={"Content-Type": "application/json"})
+            if resp.status_code in (200, 202):
+                log.info(f"  IndexNow 제출 성공: {endpoint}")
+            else:
+                log.debug(f"  IndexNow {endpoint}: {resp.status_code}")
+        except Exception:
+            pass
 
 
 def _git_commit_used():

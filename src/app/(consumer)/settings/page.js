@@ -10,10 +10,7 @@ import { isCentral } from '@/lib/instance';
 // ── Constants ──
 
 const SETUP_SEQUENCE = [
-  { id: 'setup-menu', label: '메뉴 설정', icon: '\uD83D\uDCCC' },
-  { id: 'setup-pages', label: '필수 페이지', icon: '\uD83D\uDCC4' },
-  { id: 'inject-css', label: 'CSS 적용', icon: '\uD83C\uDFA8' },
-  { id: 'inject-css-posts', label: '기존 글 CSS', icon: '\uD83D\uDD04', inputs: { force_update: 'true' } },
+  { id: 'wp-init', label: '블로그 초기화', icon: '\u2699', direct: true },
   { id: 'publish', label: '첫 글 발행', icon: '\uD83D\uDCDD' },
 ];
 
@@ -39,6 +36,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [nameEdit, setNameEdit] = useState(displayName);
   const [selectedCats, setSelectedCats] = useState([]);
+  const [nicheEditing, setNicheEditing] = useState(true);
 
   // Schedule
   const [dailyCount, setDailyCount] = useState(2);
@@ -95,6 +93,7 @@ export default function SettingsPage() {
         if (data?.config) {
           setConfig(data.config);
           setSelectedCats(data.config.niches || []);
+          if ((data.config.niches || []).length >= 2) setNicheEditing(false);
           setSetupLog(data.config.setup_log || []);
           setDailyCount(data.config.daily_count || 2);
           setScheduleTimes(data.config.schedule_times || DEFAULT_TIMES.slice(0, data.config.daily_count || 2));
@@ -138,7 +137,7 @@ export default function SettingsPage() {
     () => setupLog.filter(l => l.status === 'success').map(l => l.action),
     [setupLog]
   );
-  const REQUIRED_SETUP_IDS = ['setup-menu', 'setup-pages', 'inject-css', 'publish'];
+  const REQUIRED_SETUP_IDS = ['wp-init', 'publish'];
   const wpSetupDone = REQUIRED_SETUP_IDS.every(id => completedSetupIds.includes(id));
   const scheduleConfigured = dailyCount >= 1 && scheduleTimes.length >= dailyCount;
   const step2Complete = wpSetupDone && scheduleConfigured;
@@ -266,25 +265,39 @@ export default function SettingsPage() {
 
   const runSingleAction = useCallback(async (actionDef) => {
     const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || '';
 
+    // wp-init: 새 직접 API로 블로그 초기화 (메뉴+페이지+카테고리+타이틀+Sample삭제)
+    if (actionDef.id === 'wp-init') {
+      const res = await fetch('/api/wp-setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          siteId: site?.id,
+          actions: ['set-title', 'delete-sample', 'setup-pages', 'setup-categories', 'setup-menu'],
+          blogName: blogOwner ? `${blogOwner} 블로그` : undefined,
+          blogOwner,
+          blogDesc,
+          contactEmail,
+          niches: selectedCats,
+        }),
+      });
+      return res.json();
+    }
+
+    // publish: 기존 GitHub Actions 방식 유지
     let actionInputs = actionDef.inputs || {};
     if (actionDef.id === 'publish') {
       actionInputs = { count: String(firstPostCount) };
-    } else if (actionDef.id === 'setup-pages') {
-      actionInputs = { ...actionInputs, blog_owner: blogOwner, blog_desc: blogDesc, contact_email: contactEmail };
     }
 
     const res = await fetch('/api/setup', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session?.access_token || ''}`,
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ action: actionDef.id, siteId: site?.id, inputs: actionInputs }),
     });
-    const data = await res.json();
-    return data;
-  }, [site?.id, firstPostCount, blogOwner, blogDesc, contactEmail]);
+    return res.json();
+  }, [site?.id, firstPostCount, blogOwner, blogDesc, contactEmail, selectedCats]);
 
   const persistSetupLog = useCallback(async (log) => {
     if (!site?.id) return;
@@ -358,7 +371,7 @@ export default function SettingsPage() {
   const runSetupAction = async (action) => {
     setSetupRunning(prev => ({ ...prev, [action.id]: true }));
     try {
-      if (action.id === 'setup-pages' && site?.id) {
+      if (action.id === 'wp-init' && site?.id) {
         await supabase.from('dashboard_config').upsert({
           site_id: site.id,
           config: { ...(config || {}), blog_owner: blogOwner, blog_desc: blogDesc, contact_email: contactEmail },
@@ -651,35 +664,70 @@ export default function SettingsPage() {
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <StepBadge num={'A'} done={nicheReady} />
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', flex: 1 }}>
               니치 선택 (블로그 주제)
             </div>
+            {nicheReady && !nicheEditing && (
+              <button onClick={() => setNicheEditing(true)} style={{
+                padding: '6px 14px', borderRadius: 8, border: '1px solid var(--card-border)', background: 'var(--card)',
+                color: 'var(--accent, #6366f1)', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+              }}>니치 변경</button>
+            )}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingLeft: 36 }}>
-            {CONSUMER_CATEGORIES.map(group => (
-              <div key={group.id}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
-                  {group.label}
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {group.items.map(item => {
-                    const locked = !item.plans.includes(planId);
-                    return (
-                      <PillButton key={item.slug} selected={selectedCats.includes(item.slug)}
-                        onClick={() => !locked && toggleCat(item.slug)} disabled={locked}>
-                        {item.icon} {item.ko}
-                        {locked && ' \uD83D\uDD12'}
-                      </PillButton>
-                    );
-                  })}
-                </div>
+            {/* 선정된 니치 표시 (비편집 모드) */}
+            {nicheReady && !nicheEditing && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {selectedCats.map(slug => {
+                  const allItems = CONSUMER_CATEGORIES.flatMap(g => g.items);
+                  const item = allItems.find(i => i.slug === slug);
+                  return item ? (
+                    <span key={slug} style={{
+                      padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+                      background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)',
+                    }}>{item.icon} {item.ko}</span>
+                  ) : null;
+                })}
               </div>
-            ))}
-            <div style={{ fontSize: 11, color: nicheReady ? 'var(--green)' : 'var(--text-dim)' }}>
-              {nicheReady
-                ? `\u2705 ${selectedCats.length}개 선택 완료`
-                : `최소 2개 선택 필요 (현재 ${selectedCats.length}개)`}
-            </div>
+            )}
+
+            {/* 니치 선택 그리드 (편집 모드) */}
+            {nicheEditing && (
+              <>
+                {CONSUMER_CATEGORIES.map(group => (
+                  <div key={group.id}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                      {group.label}
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {group.items.map(item => {
+                        const locked = !item.plans.includes(planId);
+                        return (
+                          <PillButton key={item.slug} selected={selectedCats.includes(item.slug)}
+                            onClick={() => !locked && toggleCat(item.slug)} disabled={locked}>
+                            {item.icon} {item.ko}
+                            {locked && ' \uD83D\uDD12'}
+                          </PillButton>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ fontSize: 11, color: nicheReady ? 'var(--green)' : 'var(--text-dim)', flex: 1 }}>
+                    {nicheReady
+                      ? `\u2705 ${selectedCats.length}개 선택 완료`
+                      : `최소 2개 선택 필요 (현재 ${selectedCats.length}개)`}
+                  </div>
+                  {nicheReady && (
+                    <button onClick={() => setNicheEditing(false)} style={{
+                      padding: '6px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                      background: 'var(--accent, #6366f1)', color: '#fff', fontSize: 11, fontWeight: 700,
+                    }}>선택 완료</button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
